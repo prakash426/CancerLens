@@ -22,6 +22,7 @@ from ..schemas.enums import (
     PipelineState,
     RetrievalState,
 )
+from ..guards.link_check import verify_source_links
 from ..schemas.envelope import (
     AtomicClaimVerdict,
     CancerInfoEvidenceItem,
@@ -33,9 +34,12 @@ from ..schemas.envelope import (
 )
 
 if TYPE_CHECKING:
+    import httpx
+
     from ..clients.cancerinfo_client import CancerInfoAPIClient
     from ..config import Settings
     from ..db.operational_store import OperationalStore
+    from ..guards.ssrf_url_guard import Resolver
     from ..providers.baseten_client import BasetenClaimVerifierClient
     from ..providers.meta_client import MetaMuseClient
 
@@ -79,6 +83,9 @@ class ServiceContainer:
     cancer_info: "CancerInfoAPIClient"
     meta: "MetaMuseClient"
     baseten: "BasetenClaimVerifierClient"
+    # Offline seams for source-link verification (None = real network + real DNS).
+    link_check_transport: httpx.AsyncBaseTransport | None = None
+    link_check_resolver: Resolver | None = None
 
 
 @dataclass
@@ -130,6 +137,46 @@ def dedupe_items(items: list[CancerInfoEvidenceItem]) -> list[CancerInfoEvidence
     for item in items:
         seen.setdefault(item.fact_id, item)
     return list(seen.values())
+
+
+async def apply_link_verdicts(
+    c: ServiceContainer, items: list[CancerInfoEvidenceItem], *, check_live: bool = True
+) -> list[CancerInfoEvidenceItem]:
+    """Return copies of ``items`` with ``link_ok=False`` where the canonical URL is proven dead.
+
+    Cached verdicts (24h TTL) are reused; only uncached URLs are fetched, in one
+    parallel batch. Never raises and never drops evidence: any failure keeps
+    every link visible. With ``check_live=False`` only cached verdicts apply.
+    """
+    if not items:
+        return items
+    try:
+        urls = list(dict.fromkeys(i.canonical_url.strip() for i in items if i.canonical_url.strip()))
+        verdicts: dict[str, bool] = {}
+        uncached = []
+        for url in urls:
+            cached = c.store.get_link_verdict(url)
+            if cached is None:
+                uncached.append(url)
+            else:
+                verdicts[url] = cached
+        if uncached and check_live:
+            live = await verify_source_links(
+                uncached, transport=c.link_check_transport, resolver=c.link_check_resolver
+            )
+            for url, alive in live.items():
+                verdicts[url] = alive
+                try:
+                    c.store.set_link_verdict(url, alive)
+                except Exception:  # noqa: BLE001 - verdict caching is best-effort
+                    logger.exception("Link verdict caching failed")
+        return [
+            item.model_copy(update={"link_ok": verdicts.get(item.canonical_url.strip(), True)})
+            for item in items
+        ]
+    except Exception:  # noqa: BLE001 - link verification must never break a pipeline
+        logger.exception("Source-link verification failed; keeping all links visible")
+        return items
 
 
 def combine_retrieval_states(states: list[RetrievalState]) -> RetrievalState:

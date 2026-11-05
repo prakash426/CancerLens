@@ -1,6 +1,6 @@
 """Local operational SQLite store (``cancerlens_app.db``).
 
-Holds ONLY the five operational tables from DATABASE.md Section 3. Zero medical corpus
+Holds ONLY the six operational tables from DATABASE.md Section 3. Zero medical corpus
 tables: Cancer Info API stays the single source of truth for medical content.
 
 Safeguards implemented here:
@@ -38,8 +38,16 @@ MIN_SQLITE_FOR_STRICT = (3, 37, 0)
 SPEC_SQLITE_VERSION = (3, 45, 0)
 
 OPERATIONAL_TABLES = frozenset(
-    {"claim_memory_library", "claim_memory_fts", "learned_query_mappings", "budget_ledger", "saved_results"}
+    {
+        "claim_memory_library",
+        "claim_memory_fts",
+        "learned_query_mappings",
+        "budget_ledger",
+        "saved_results",
+        "link_verification_cache",
+    }
 )
+LINK_VERDICT_TTL_HOURS = 24
 # SQLite-internal tables that legitimately appear alongside the operational ones.
 _INTERNAL_TABLE_PREFIXES = ("sqlite_", "claim_memory_fts_")
 
@@ -128,6 +136,12 @@ CREATE TABLE IF NOT EXISTS saved_results (
     is_public INTEGER NOT NULL DEFAULT 0 CHECK (is_public = 0),
     created_at_utc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
     expires_at_utc TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS link_verification_cache (
+    url TEXT PRIMARY KEY,
+    is_alive INTEGER NOT NULL CHECK (is_alive IN (0, 1)),
+    checked_at_utc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 ) STRICT;
 """
 
@@ -265,6 +279,33 @@ class OperationalStore:
         unexpected = self.list_user_tables() - OPERATIONAL_TABLES
         if unexpected:
             raise OperationalStoreError(f"Non-operational tables present: {sorted(unexpected)}")
+
+    # ------------------------------------------------------------------ link verdicts
+    def get_link_verdict(self, url: str) -> bool | None:
+        """Cached source-link aliveness, or None when unknown or older than the TTL."""
+        key = (url or "").strip()
+        if not key:
+            return None
+        cutoff = format_ts(utc_now() - timedelta(hours=LINK_VERDICT_TTL_HOURS))
+        with self._lock:
+            row = self.conn.execute(
+                "SELECT is_alive FROM link_verification_cache WHERE url = ? AND checked_at_utc >= ?",
+                (key, cutoff),
+            ).fetchone()
+        return None if row is None else bool(row["is_alive"])
+
+    def set_link_verdict(self, url: str, is_alive: bool) -> None:
+        key = (url or "").strip()
+        if not key:
+            return
+        with self._lock:
+            self.conn.execute(
+                """INSERT INTO link_verification_cache (url, is_alive, checked_at_utc)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT(url) DO UPDATE SET is_alive = excluded.is_alive,
+                                                  checked_at_utc = excluded.checked_at_utc""",
+                (key, 1 if is_alive else 0, format_ts(utc_now())),
+            )
 
     # ------------------------------------------------------------------ budget (SG-05)
     def record_budget_entry(

@@ -195,6 +195,15 @@ class MetaMock:
         return httpx.Response(200, json=body)
 
 
+def _link_alive_handler(request: httpx.Request) -> httpx.Response:
+    """Default source-link verification target: every synthetic URL resolves ($0.00 rule)."""
+    return httpx.Response(200, text="synthetic link target")
+
+
+def _link_alive_resolver(hostname: str) -> list[str]:
+    return ["93.184.216.34"]
+
+
 def make_settings(**overrides: Any) -> Settings:
     base = dict(
         _env_file=None,
@@ -234,6 +243,8 @@ async def harness_factory() -> Callable[..., Harness]:
             cancer_info=CancerInfoAPIClient(settings, transport=httpx.MockTransport(ci.handler)),
             meta=MetaMuseClient(settings, store, transport=httpx.MockTransport(mt.handler)),
             baseten=BasetenClaimVerifierClient(settings, store, transport=httpx.MockTransport(bt.handler)),
+            link_check_transport=httpx.MockTransport(_link_alive_handler),
+            link_check_resolver=_link_alive_resolver,
         )
         created.append(container)
         return Harness(container, ci, bt, mt)

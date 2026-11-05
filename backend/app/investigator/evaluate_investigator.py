@@ -33,6 +33,7 @@ from .common import (
     PipelineTracker,
     ServiceContainer,
     abstention_envelope,
+    apply_link_verdicts,
     build_telemetry,
     combine_retrieval_states,
     dedupe_items,
@@ -178,6 +179,7 @@ async def _assess(
             walk_states=retrieval_state is RetrievalState.SEARCH_EXECUTED_NO_MATCHES, **provider, **common,
         )
 
+    items = await apply_link_verdicts(c, items)
     admitted = [i for i in items if i.ai_processing_allowed is True]  # WHO Clause 6 gate
     tracker.advance(PipelineState.EVIDENCE_VALIDATED)
     if not admitted:

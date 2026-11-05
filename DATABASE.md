@@ -17,6 +17,7 @@
      2. `learned_query_mappings` (verified lay-phrase-to-medical-search expansions for Mechanism A, gated by `review_status`).
      3. `saved_results` (private-by-default capability-token snapshots, invalidated if a cited document is revoked in `Cancer Info API`).
      4. `budget_ledger` (dual-pool serverless token telemetry for the `$150` Meta Model API pool and `$100` Baseten Model API pool).
+     5. `link_verification_cache` (24h TTL verdicts on upstream `canonical_url` aliveness, so dead outbound links render unlinked instead of 404ing).
 
 ---
 
@@ -52,6 +53,7 @@ class CancerInfoEvidenceItem(BaseModel):
     reviewed_at_date: date
     attribution_text: str               # Mandatory Clause 3 bibliographical reference & non-endorsement notice
     ai_processing_allowed: bool         # Clause 6 gate verified before external LLM transmission
+    link_ok: bool = True                # CancerLens-set; False only when canonical_url is proven dead
 ```
 
 ---
@@ -147,5 +149,12 @@ CREATE TABLE saved_results (
     is_public INTEGER NOT NULL DEFAULT 0 CHECK (is_public = 0),
     created_at_utc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
     expires_at_utc TEXT NOT NULL
+) STRICT;
+
+-- 5. Source-Link Verification Cache (dead outbound citations render unlinked, never dropped)
+CREATE TABLE link_verification_cache (
+    url TEXT PRIMARY KEY,
+    is_alive INTEGER NOT NULL CHECK (is_alive IN (0, 1)),
+    checked_at_utc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 ) STRICT;
 ```
