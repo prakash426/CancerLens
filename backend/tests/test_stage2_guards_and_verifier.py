@@ -837,6 +837,28 @@ def test_stage2_config_defaults():
     assert settings.LIVE_LLM_CALLS_ENABLED is False
 
 
+def test_stage2_config_blank_prices_mean_unset(monkeypatch):
+    """Fresh-clone flow: blank `KEY=` lines (as shipped in .env.example) load as None."""
+    from app.config import Settings
+
+    for name in (
+        "META_PRICE_INPUT_PER_MTOK_USD",
+        "META_PRICE_OUTPUT_PER_MTOK_USD",
+        "META_PRICE_CACHED_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_CACHED_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_OUTPUT_PER_MTOK_USD",
+    ):
+        monkeypatch.setenv(name, "")
+    settings = Settings(_env_file=None)
+    assert settings.META_PRICE_INPUT_PER_MTOK_USD is None
+    assert settings.META_PRICE_OUTPUT_PER_MTOK_USD is None
+    assert settings.META_PRICE_CACHED_INPUT_PER_MTOK_USD is None
+    assert settings.BASETEN_PRICE_INPUT_PER_MTOK_USD is None
+    assert settings.BASETEN_PRICE_CACHED_INPUT_PER_MTOK_USD is None
+    assert settings.BASETEN_PRICE_OUTPUT_PER_MTOK_USD is None
+
+
 # ---------------------------------------- by-ID outage fallback (live /v1/facts verified 4 Nov 2026)
 
 
