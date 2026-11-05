@@ -1,0 +1,1795 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CancerLens API",
+    "description": "CancerLens backend (Track 1, Stage 2). Learn Lens (Meta Model API muse-spark-1.3) and Evaluate Lens (Baseten meta-models/muse-spark-open-1026) over the live Cancer Info API. Educational information only; not medical advice.",
+    "version": "1.0.0-stage2"
+  },
+  "paths": {
+    "/api/v1/cancers": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Cancers",
+        "operationId": "list_cancers_api_v1_cancers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancerCatalogResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/learn": {
+      "post": {
+        "tags": [
+          "learn"
+        ],
+        "summary": "Learn",
+        "operationId": "learn_api_v1_learn_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evaluate": {
+      "post": {
+        "tags": [
+          "evaluate"
+        ],
+        "summary": "Evaluate",
+        "operationId": "evaluate_api_v1_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evaluate/double-check": {
+      "post": {
+        "tags": [
+          "evaluate"
+        ],
+        "summary": "Evaluate Double Check",
+        "operationId": "evaluate_double_check_api_v1_evaluate_double_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsistencyDoubleCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsistencyDoubleCheckResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extract/image": {
+      "post": {
+        "tags": [
+          "extract"
+        ],
+        "summary": "Extract Image",
+        "operationId": "extract_image_api_v1_extract_image_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_image_api_v1_extract_image_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Capability not available yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extract/url": {
+      "post": {
+        "tags": [
+          "extract"
+        ],
+        "summary": "Extract Url",
+        "operationId": "extract_url_api_v1_extract_url_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UrlExtractionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Capability not available yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/saved-results": {
+      "post": {
+        "tags": [
+          "saved-results"
+        ],
+        "summary": "Create Saved Result",
+        "operationId": "create_saved_result_api_v1_saved_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedResultCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResultCreatedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/saved-results/{saved_result_id}": {
+      "get": {
+        "tags": [
+          "saved-results"
+        ],
+        "summary": "Get Saved Result",
+        "operationId": "get_saved_result_api_v1_saved_results__saved_result_id__get",
+        "parameters": [
+          {
+            "name": "saved_result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Saved Result Id"
+            }
+          },
+          {
+            "name": "x-capability-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 200,
+              "title": "X-Capability-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResultView"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "saved-results"
+        ],
+        "summary": "Delete Saved Result",
+        "operationId": "delete_saved_result_api_v1_saved_results__saved_result_id__delete",
+        "parameters": [
+          {
+            "name": "saved_result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Saved Result Id"
+            }
+          },
+          {
+            "name": "x-capability-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 200,
+              "title": "X-Capability-Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/budget": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Budget Health",
+        "operationId": "budget_health_api_v1_health_budget_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AtomicClaimVerdict": {
+        "properties": {
+          "subclaim_id": {
+            "type": "string",
+            "title": "Subclaim Id"
+          },
+          "atomic_claim_text": {
+            "type": "string",
+            "title": "Atomic Claim Text"
+          },
+          "outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          },
+          "outcome_label": {
+            "type": "string",
+            "title": "Outcome Label"
+          },
+          "ai_plain_language_explanation": {
+            "type": "string",
+            "title": "Ai Plain Language Explanation",
+            "description": "AI-authored (CancerLens AI), never attributed to a source"
+          },
+          "context_comparisons_5d": {
+            "items": {
+              "$ref": "#/components/schemas/ContextDimensionComparison"
+            },
+            "type": "array",
+            "title": "Context Comparisons 5D"
+          },
+          "cited_fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cited Fact Ids"
+          },
+          "cited_document_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cited Document Ids"
+          },
+          "verbatim_quote_verified": {
+            "type": "boolean",
+            "title": "Verbatim Quote Verified",
+            "default": false
+          },
+          "stage4_downgraded": {
+            "type": "boolean",
+            "title": "Stage4 Downgraded",
+            "default": false
+          },
+          "stage4_downgrade_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage4 Downgrade Reason"
+          },
+          "pivot_to_learn_cancer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pivot To Learn Cancer Id"
+          },
+          "pivot_to_learn_category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pivot To Learn Category Slug"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "subclaim_id",
+          "atomic_claim_text",
+          "outcome_code",
+          "outcome_label",
+          "ai_plain_language_explanation",
+          "context_comparisons_5d",
+          "cited_fact_ids",
+          "cited_document_ids"
+        ],
+        "title": "AtomicClaimVerdict"
+      },
+      "Body_extract_image_api_v1_extract_image_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_image_api_v1_extract_image_post"
+      },
+      "BudgetHealthResponse": {
+        "properties": {
+          "live_llm_calls_enabled": {
+            "type": "boolean",
+            "title": "Live Llm Calls Enabled"
+          },
+          "pools": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderPoolStatus"
+            },
+            "type": "array",
+            "title": "Pools"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "live_llm_calls_enabled",
+          "pools"
+        ],
+        "title": "BudgetHealthResponse"
+      },
+      "CancerCatalogResponse": {
+        "properties": {
+          "retrieval_state": {
+            "$ref": "#/components/schemas/RetrievalState"
+          },
+          "cancers": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Cancers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "retrieval_state"
+        ],
+        "title": "CancerCatalogResponse",
+        "description": "Pass-through of the Cancer Info API taxonomy. Entry shape is owned by Cancer Info API."
+      },
+      "CancerInfoEvidenceItem": {
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "title": "Fact Id",
+            "description": "Stable ID from Cancer Info API"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id",
+            "description": "Originating source document ID"
+          },
+          "source_id": {
+            "type": "string",
+            "title": "Source Id",
+            "description": "Delivery source ID (e.g. WHO, NCI)"
+          },
+          "origin_source_id": {
+            "type": "string",
+            "title": "Origin Source Id",
+            "description": "Upstream producer ID (prevents double-counting consensus)"
+          },
+          "organization_name": {
+            "type": "string",
+            "title": "Organization Name"
+          },
+          "permission_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permission Reference",
+            "description": "e.g. \"WHO Licence 202610792\""
+          },
+          "source_title": {
+            "type": "string",
+            "title": "Source Title"
+          },
+          "canonical_url": {
+            "type": "string",
+            "title": "Canonical Url",
+            "description": "Direct original URL (WHO Clause 3/6)"
+          },
+          "cancer_id": {
+            "type": "string",
+            "title": "Cancer Id"
+          },
+          "subtype_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype Id"
+          },
+          "category_slug": {
+            "type": "string",
+            "title": "Category Slug"
+          },
+          "structured_fact_or_summary": {
+            "type": "string",
+            "title": "Structured Fact Or Summary",
+            "description": "Cancer Info API structured fact or concise summary"
+          },
+          "limited_verbatim_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limited Verbatim Excerpt",
+            "description": "Short permitted quotation, if authorized for display"
+          },
+          "study_design_scope": {
+            "type": "string",
+            "title": "Study Design Scope",
+            "description": "guideline | rct_meta | epidemiology | preclinical"
+          },
+          "population_scope": {
+            "type": "string",
+            "title": "Population Scope",
+            "description": "human_adult_general | human_high_risk | preclinical_non_human"
+          },
+          "jurisdiction_code": {
+            "type": "string",
+            "title": "Jurisdiction Code"
+          },
+          "observed_source_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Source Date"
+          },
+          "retrieved_at_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Retrieved At Utc"
+          },
+          "reviewed_at_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Reviewed At Date"
+          },
+          "attribution_text": {
+            "type": "string",
+            "title": "Attribution Text",
+            "description": "Mandatory Clause 3 bibliographical reference & non-endorsement notice"
+          },
+          "ai_processing_allowed": {
+            "type": "boolean",
+            "title": "Ai Processing Allowed",
+            "description": "Clause 6 gate checked before any external LLM transmission"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fact_id",
+          "document_id",
+          "source_id",
+          "origin_source_id",
+          "organization_name",
+          "permission_reference",
+          "source_title",
+          "canonical_url",
+          "cancer_id",
+          "subtype_id",
+          "category_slug",
+          "structured_fact_or_summary",
+          "limited_verbatim_excerpt",
+          "study_design_scope",
+          "population_scope",
+          "jurisdiction_code",
+          "observed_source_date",
+          "retrieved_at_utc",
+          "reviewed_at_date",
+          "attribution_text",
+          "ai_processing_allowed"
+        ],
+        "title": "CancerInfoEvidenceItem",
+        "description": "Exact contract from DATABASE.md Section 2. Dates are nullable and never fabricated."
+      },
+      "ComplianceAndAttributionBanner": {
+        "properties": {
+          "ai_author_label": {
+            "type": "string",
+            "title": "Ai Author Label",
+            "default": "AI-Generated Plain-Language Summary \u2014 Authored by CancerLens AI"
+          },
+          "medical_boundary_disclaimer": {
+            "type": "string",
+            "title": "Medical Boundary Disclaimer",
+            "default": "CancerLens provides general educational information and evidence analysis, not personal medical diagnosis or treatment advice."
+          },
+          "who_non_endorsement_notice": {
+            "type": "string",
+            "title": "Who Non Endorsement Notice",
+            "default": "Source materials used under permission (including WHO Licence 202610792 where applicable). Independently developed; not published, endorsed, or sponsored by the World Health Organization."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ComplianceAndAttributionBanner"
+      },
+      "ConsistencyDoubleCheckRequest": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Request Id"
+          },
+          "claim_text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Claim Text"
+          },
+          "cited_fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Cited Fact Ids"
+          },
+          "primary_outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "claim_text",
+          "cited_fact_ids",
+          "primary_outcome_code"
+        ],
+        "title": "ConsistencyDoubleCheckRequest"
+      },
+      "ConsistencyDoubleCheckResult": {
+        "properties": {
+          "original_request_id": {
+            "type": "string",
+            "title": "Original Request Id"
+          },
+          "original_outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          },
+          "recheck_outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          },
+          "is_consistent": {
+            "type": "boolean",
+            "title": "Is Consistent"
+          },
+          "consistency_note": {
+            "type": "string",
+            "title": "Consistency Note"
+          },
+          "recheck_envelope": {
+            "$ref": "#/components/schemas/ResultEnvelope"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "original_request_id",
+          "original_outcome_code",
+          "recheck_outcome_code",
+          "is_consistent",
+          "consistency_note",
+          "recheck_envelope"
+        ],
+        "title": "ConsistencyDoubleCheckResult"
+      },
+      "ContextDimensionComparison": {
+        "properties": {
+          "dimension_name": {
+            "type": "string",
+            "enum": [
+              "cancer_and_subtype",
+              "population_and_stage",
+              "study_design",
+              "endpoint_measured",
+              "caveat_or_dose"
+            ],
+            "title": "Dimension Name"
+          },
+          "claim_assumes": {
+            "type": "string",
+            "title": "Claim Assumes"
+          },
+          "evidence_actually_shows": {
+            "type": "string",
+            "title": "Evidence Actually Shows"
+          },
+          "is_mismatch": {
+            "type": "boolean",
+            "title": "Is Mismatch"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dimension_name",
+          "claim_assumes",
+          "evidence_actually_shows",
+          "is_mismatch"
+        ],
+        "title": "ContextDimensionComparison"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "error_code",
+          "message"
+        ],
+        "title": "ErrorResponse"
+      },
+      "EvaluateRequest": {
+        "properties": {
+          "claim_text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Claim Text"
+          },
+          "source_modality": {
+            "$ref": "#/components/schemas/InputModality",
+            "default": "TEXT"
+          },
+          "user_confirmed_extraction": {
+            "type": "boolean",
+            "title": "User Confirmed Extraction",
+            "default": true
+          },
+          "cancer_id_hint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancer Id Hint"
+          },
+          "subtype_id_hint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype Id Hint"
+          },
+          "resolved_mode": {
+            "type": "string",
+            "const": "EVALUATE",
+            "title": "Resolved Mode",
+            "default": "EVALUATE"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "claim_text"
+        ],
+        "title": "EvaluateRequest"
+      },
+      "ExtractionResponse": {
+        "properties": {
+          "extracted_text": {
+            "type": "string",
+            "title": "Extracted Text"
+          },
+          "requires_user_confirmation": {
+            "type": "boolean",
+            "const": true,
+            "title": "Requires User Confirmation",
+            "default": true
+          },
+          "modality": {
+            "$ref": "#/components/schemas/InputModality"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "extracted_text",
+          "modality"
+        ],
+        "title": "ExtractionResponse",
+        "description": "Editable draft for the Inline Confirmation Drawer. Never evaluated without user confirmation."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InputModality": {
+        "type": "string",
+        "enum": [
+          "TEXT",
+          "IMAGE_OCR",
+          "URL_EXTRACT"
+        ],
+        "title": "InputModality"
+      },
+      "LearnCategoryCard": {
+        "properties": {
+          "category_slug": {
+            "type": "string",
+            "title": "Category Slug"
+          },
+          "category_title": {
+            "type": "string",
+            "title": "Category Title"
+          },
+          "coverage_status": {
+            "type": "string",
+            "enum": [
+              "COVERED",
+              "PARTIAL",
+              "COVERAGE_GAP"
+            ],
+            "title": "Coverage Status"
+          },
+          "ai_plain_language_explanation": {
+            "type": "string",
+            "title": "Ai Plain Language Explanation"
+          },
+          "cited_fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cited Fact Ids"
+          },
+          "common_public_claims": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Common Public Claims",
+            "description": "APPROVED reviewed claims only (Mechanism B chips)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "category_slug",
+          "category_title",
+          "coverage_status",
+          "ai_plain_language_explanation",
+          "cited_fact_ids"
+        ],
+        "title": "LearnCategoryCard"
+      },
+      "LearnRequest": {
+        "properties": {
+          "cancer_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Cancer Id"
+          },
+          "subtype_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype Id"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "user_question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Question"
+          },
+          "resolved_mode": {
+            "type": "string",
+            "const": "LEARN",
+            "title": "Resolved Mode",
+            "default": "LEARN"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cancer_id"
+        ],
+        "title": "LearnRequest"
+      },
+      "LensMode": {
+        "type": "string",
+        "enum": [
+          "LEARN",
+          "EVALUATE"
+        ],
+        "title": "LensMode",
+        "description": "SG-06: locked from the user's Interactive Focal Lens Switch, never from the model."
+      },
+      "OutcomeCode": {
+        "type": "string",
+        "enum": [
+          "SUPPORTED",
+          "MIXED_OR_CONTEXT_DEPENDENT",
+          "CONTRADICTED",
+          "INSUFFICIENT_EVIDENCE",
+          "OUT_OF_SCOPE_CLINICAL"
+        ],
+        "title": "OutcomeCode"
+      },
+      "PipelineState": {
+        "type": "string",
+        "enum": [
+          "INPUT_PARSED",
+          "TOOL_REQUESTED",
+          "TOOL_EXECUTED",
+          "EVIDENCE_VALIDATED",
+          "ASSESSMENT_VALIDATED",
+          "DISPLAYABLE"
+        ],
+        "title": "PipelineState",
+        "description": "SG-01: strict forward-only backend state machine. Model output never advances it."
+      },
+      "ProviderPoolStatus": {
+        "properties": {
+          "provider_name": {
+            "type": "string",
+            "enum": [
+              "meta_model_api",
+              "baseten_model_api"
+            ],
+            "title": "Provider Name"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "pool_total_usd": {
+            "type": "number",
+            "title": "Pool Total Usd"
+          },
+          "pre_submission_cap_usd": {
+            "type": "number",
+            "title": "Pre Submission Cap Usd"
+          },
+          "spent_usd": {
+            "type": "number",
+            "title": "Spent Usd"
+          },
+          "remaining_before_cap_usd": {
+            "type": "number",
+            "title": "Remaining Before Cap Usd"
+          },
+          "remaining_in_pool_usd": {
+            "type": "number",
+            "title": "Remaining In Pool Usd"
+          },
+          "circuit_breaker_open": {
+            "type": "boolean",
+            "title": "Circuit Breaker Open"
+          },
+          "pricing_configured": {
+            "type": "boolean",
+            "title": "Pricing Configured"
+          },
+          "calls_logged": {
+            "type": "integer",
+            "title": "Calls Logged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "provider_name",
+          "model_id",
+          "pool_total_usd",
+          "pre_submission_cap_usd",
+          "spent_usd",
+          "remaining_before_cap_usd",
+          "remaining_in_pool_usd",
+          "circuit_breaker_open",
+          "pricing_configured",
+          "calls_logged"
+        ],
+        "title": "ProviderPoolStatus"
+      },
+      "RelatedReviewedClaimItem": {
+        "properties": {
+          "claim_memory_id": {
+            "type": "string",
+            "title": "Claim Memory Id"
+          },
+          "canonical_claim_text": {
+            "type": "string",
+            "title": "Canonical Claim Text"
+          },
+          "primary_outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          },
+          "outcome_label": {
+            "type": "string",
+            "title": "Outcome Label"
+          },
+          "nuance_warning_note": {
+            "type": "string",
+            "title": "Nuance Warning Note"
+          },
+          "how_this_differs_note": {
+            "type": "string",
+            "title": "How This Differs Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "claim_memory_id",
+          "canonical_claim_text",
+          "primary_outcome_code",
+          "outcome_label",
+          "nuance_warning_note",
+          "how_this_differs_note"
+        ],
+        "title": "RelatedReviewedClaimItem"
+      },
+      "ResultEnvelope": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "resolved_mode": {
+            "$ref": "#/components/schemas/LensMode"
+          },
+          "pipeline_state": {
+            "$ref": "#/components/schemas/PipelineState"
+          },
+          "retrieval_state": {
+            "$ref": "#/components/schemas/RetrievalState"
+          },
+          "interpreted_query_or_claim": {
+            "type": "string",
+            "title": "Interpreted Query Or Claim"
+          },
+          "cancer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancer Id"
+          },
+          "cancer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancer Name"
+          },
+          "subtype_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype Id"
+          },
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Slug"
+          },
+          "overall_outcome_code": {
+            "$ref": "#/components/schemas/OutcomeCode"
+          },
+          "overall_outcome_label": {
+            "type": "string",
+            "title": "Overall Outcome Label"
+          },
+          "ai_plain_language_summary": {
+            "type": "string",
+            "title": "Ai Plain Language Summary",
+            "description": "AI-authored; strictly separate from evidence_items"
+          },
+          "learn_category_cards": {
+            "items": {
+              "$ref": "#/components/schemas/LearnCategoryCard"
+            },
+            "type": "array",
+            "title": "Learn Category Cards"
+          },
+          "atomic_claim_verdicts": {
+            "items": {
+              "$ref": "#/components/schemas/AtomicClaimVerdict"
+            },
+            "type": "array",
+            "title": "Atomic Claim Verdicts"
+          },
+          "evidence_items": {
+            "items": {
+              "$ref": "#/components/schemas/CancerInfoEvidenceItem"
+            },
+            "type": "array",
+            "title": "Evidence Items"
+          },
+          "related_reviewed_claims": {
+            "items": {
+              "$ref": "#/components/schemas/RelatedReviewedClaimItem"
+            },
+            "type": "array",
+            "title": "Related Reviewed Claims"
+          },
+          "limitations_and_gaps_note": {
+            "type": "string",
+            "title": "Limitations And Gaps Note"
+          },
+          "compliance_banner": {
+            "$ref": "#/components/schemas/ComplianceAndAttributionBanner"
+          },
+          "telemetry": {
+            "$ref": "#/components/schemas/TelemetrySnapshot"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "resolved_mode",
+          "pipeline_state",
+          "retrieval_state",
+          "interpreted_query_or_claim",
+          "overall_outcome_code",
+          "overall_outcome_label",
+          "ai_plain_language_summary",
+          "limitations_and_gaps_note",
+          "telemetry"
+        ],
+        "title": "ResultEnvelope"
+      },
+      "RetrievalState": {
+        "type": "string",
+        "enum": [
+          "TOOL_NOT_EXECUTED",
+          "TOOL_FAILED",
+          "SEARCH_EXECUTED_NO_MATCHES",
+          "SEARCH_EXECUTED_WITH_MATCHES"
+        ],
+        "title": "RetrievalState",
+        "description": "SG-03: explicit machine retrieval state. NO_MATCHES is a coverage gap, never a contradiction."
+      },
+      "SavedResultCreateRequest": {
+        "properties": {
+          "result_envelope": {
+            "$ref": "#/components/schemas/ResultEnvelope"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "result_envelope"
+        ],
+        "title": "SavedResultCreateRequest"
+      },
+      "SavedResultCreatedResponse": {
+        "properties": {
+          "saved_result_id": {
+            "type": "string",
+            "title": "Saved Result Id"
+          },
+          "capability_token": {
+            "type": "string",
+            "title": "Capability Token",
+            "description": "Shown once. Send as X-Capability-Token to read or delete."
+          },
+          "expires_at_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At Utc"
+          },
+          "is_public": {
+            "type": "boolean",
+            "const": false,
+            "title": "Is Public",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "saved_result_id",
+          "capability_token",
+          "expires_at_utc"
+        ],
+        "title": "SavedResultCreatedResponse"
+      },
+      "SavedResultView": {
+        "properties": {
+          "saved_result_id": {
+            "type": "string",
+            "title": "Saved Result Id"
+          },
+          "created_at_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At Utc"
+          },
+          "expires_at_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At Utc"
+          },
+          "result_envelope": {
+            "$ref": "#/components/schemas/ResultEnvelope"
+          },
+          "revalidated_against_cancer_info_api": {
+            "type": "boolean",
+            "title": "Revalidated Against Cancer Info Api"
+          },
+          "revalidation_note": {
+            "type": "string",
+            "title": "Revalidation Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "saved_result_id",
+          "created_at_utc",
+          "expires_at_utc",
+          "result_envelope",
+          "revalidated_against_cancer_info_api",
+          "revalidation_note"
+        ],
+        "title": "SavedResultView"
+      },
+      "TelemetrySnapshot": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "pipeline_state": {
+            "$ref": "#/components/schemas/PipelineState"
+          },
+          "retrieval_state": {
+            "$ref": "#/components/schemas/RetrievalState"
+          },
+          "primary_provider": {
+            "type": "string",
+            "title": "Primary Provider"
+          },
+          "primary_model": {
+            "type": "string",
+            "title": "Primary Model"
+          },
+          "total_latency_ms": {
+            "type": "integer",
+            "title": "Total Latency Ms"
+          },
+          "hops_executed": {
+            "type": "integer",
+            "title": "Hops Executed"
+          },
+          "learned_query_mapping_applied": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learned Query Mapping Applied"
+          },
+          "meta_pool_spent_usd": {
+            "type": "number",
+            "title": "Meta Pool Spent Usd"
+          },
+          "meta_pool_remaining_usd": {
+            "type": "number",
+            "title": "Meta Pool Remaining Usd"
+          },
+          "baseten_pool_spent_usd": {
+            "type": "number",
+            "title": "Baseten Pool Spent Usd"
+          },
+          "baseten_pool_remaining_usd": {
+            "type": "number",
+            "title": "Baseten Pool Remaining Usd"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "pipeline_state",
+          "retrieval_state",
+          "primary_provider",
+          "primary_model",
+          "total_latency_ms",
+          "hops_executed",
+          "meta_pool_spent_usd",
+          "meta_pool_remaining_usd",
+          "baseten_pool_spent_usd",
+          "baseten_pool_remaining_usd"
+        ],
+        "title": "TelemetrySnapshot",
+        "description": "Redacted telemetry: no secrets, no reasoning content, no user narrative (SG-10)."
+      },
+      "UrlExtractionRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 8,
+            "title": "Url",
+            "description": "Public https URL (SSRF guard applies)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "UrlExtractionRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

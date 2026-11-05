@@ -1,0 +1,253 @@
+<template>
+    <div class="ci-profile" lwc:ref="root" aria-live="polite">
+        <template lwc:if={isLoading}>
+            <div class="ci-loading">
+                <lightning-spinner alternative-text="Loading cancer information" size="small" variant="brand"></lightning-spinner>
+                <p class="ci-loading__text">
+                    Contacting CancerInfo API&hellip; the first request can take up to a minute while the service wakes up.
+                </p>
+            </div>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="ci-alert" role="alert">
+                <lightning-icon icon-name="utility:warning" size="x-small" alternative-text="Error"></lightning-icon>
+                <span class="ci-alert__text">{error}</span>
+                <lightning-button label="Try again" variant="base" onclick={handleRetry}></lightning-button>
+            </div>
+        </template>
+
+        <template lwc:if={hasProfile}>
+            <!-- Header ------------------------------------------------------------------------------ -->
+            <header class="ci-header">
+                <div class="ci-header__text">
+                    <span class="ci-badge">Cancer Information Profile</span>
+                    <h2 class="ci-header__title">{profile.name}</h2>
+                    <template lwc:if={hasHeaderMeta}>
+                        <p class="ci-header__meta">
+                            <template lwc:if={aliasText}>Known aliases: {aliasText}</template>
+                            <template lwc:if={showMetaSeparator}> · </template>
+                            <template lwc:if={profile.site}>Anatomy: {profile.site}</template>
+                        </p>
+                    </template>
+                </div>
+                <template lwc:if={hasCodes}>
+                    <ul class="ci-codes" aria-label="Classification codes">
+                        <template for:each={codes} for:item="code">
+                            <li key={code.key} class="ci-code"><span class="ci-code__label">{code.label}</span> {code.value}</li>
+                        </template>
+                    </ul>
+                </template>
+            </header>
+
+            <template lwc:if={isLoadingSections}>
+                <div class="ci-progress">
+                    <div class="ci-progress__bar" aria-hidden="true"></div>
+                    <span>{progressText}</span>
+                </div>
+            </template>
+
+            <div class={layoutClass}>
+                <!-- Main column ------------------------------------------------------------------- -->
+                <div class="ci-main">
+                    <template lwc:if={evidenceCard}>
+                        <section class="ci-card ci-card_evidence">
+                            <h3 class="ci-card__title">
+                                <lightning-icon icon-name={evidenceCard.icon} size="x-small" alternative-text=""></lightning-icon>
+                                <span>{evidenceCard.title}</span>
+                            </h3>
+                            <blockquote class="ci-asked">&ldquo;{askedText}&rdquo;</blockquote>
+                            <template lwc:if={showClaimNote}>
+                                <p class="ci-note">
+                                    CancerInfo does not rate claims as true or false. Compare the claim with these source passages and
+                                    discuss it with a healthcare professional.
+                                </p>
+                            </template>
+                            <ul class="ci-evidence">
+                                <template for:each={evidenceCard.items} for:item="item">
+                                    <li key={item.key} class="ci-evidence__item">
+                                        <div class="ci-evidence__meta">
+                                            <span class="ci-chip ci-chip_green">{item.categoryName}</span>
+                                            <template lwc:if={item.region}>
+                                                <span class="ci-chip">{item.region}</span>
+                                            </template>
+                                        </div>
+                                        <p class="ci-evidence__excerpt">{item.excerpt}</p>
+                                        <template lwc:if={item.organization}>
+                                            <p class="ci-evidence__source">
+                                                Source:
+                                                <template lwc:if={item.href}>
+                                                    <a href={item.href} target="_blank" rel="noopener noreferrer">{item.organization}</a>
+                                                </template>
+                                                <template lwc:else>{item.organization}</template>
+                                            </p>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+                    <template lwc:elseif={evidenceNotice}>
+                        <div class="ci-notice">
+                            <lightning-icon icon-name="utility:info" size="x-small" alternative-text="Info"></lightning-icon>
+                            <div>
+                                <p class="ci-notice__asked">&ldquo;{askedText}&rdquo;</p>
+                                <p>{evidenceNotice}</p>
+                                <template lwc:if={showClaimNote}>
+                                    <p class="ci-notice__small">CancerInfo does not rate claims as true or false.</p>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template for:each={mainCards} for:item="card">
+                        <section key={card.key} class={card.cardClass}>
+                            <h3 class="ci-card__title">
+                                <lightning-icon icon-name={card.icon} size="x-small" alternative-text=""></lightning-icon>
+                                <span>{card.title}</span>
+                                <template lwc:if={card.subtitle}>
+                                    <span class="ci-card__subtitle">{card.subtitle}</span>
+                                </template>
+                                <template lwc:if={card.matched}>
+                                    <span class="ci-chip ci-chip_green ci-chip_match">{card.matchedLabel}</span>
+                                </template>
+                            </h3>
+                            <template lwc:if={card.note}>
+                                <p class="ci-note">{card.note}</p>
+                            </template>
+                            <template for:each={card.sections} for:item="section">
+                                <div key={section.key} class="ci-section">
+                                    <template lwc:if={section.showName}>
+                                        <h4 class="ci-section__name">{section.name}</h4>
+                                    </template>
+                                    <template for:each={section.blocks} for:item="block">
+                                        <c-cancer-info-block key={block.id} block={block} layout={card.layout}></c-cancer-info-block>
+                                    </template>
+                                    <template lwc:if={section.canToggle}>
+                                        <button
+                                            type="button"
+                                            class="slds-button ci-toggle"
+                                            data-section={section.key}
+                                            onclick={handleToggleSection}
+                                        >
+                                            {section.toggleLabel}
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                        </section>
+                    </template>
+
+                    <template lwc:if={noDetailedData}>
+                        <div class="ci-notice">
+                            <lightning-icon icon-name="utility:info" size="x-small" alternative-text="Info"></lightning-icon>
+                            <p>
+                                Detailed sections for this cancer are not yet published in CancerInfo API. Only the basic profile is
+                                shown.
+                            </p>
+                        </div>
+                    </template>
+
+                    <template lwc:if={hasFailedGroups}>
+                        <template for:each={failedGroups} for:item="failed">
+                            <div key={failed.key} class="ci-alert ci-alert_soft" role="alert">
+                                <lightning-icon icon-name="utility:warning" size="x-small" alternative-text="Warning"></lightning-icon>
+                                <span class="ci-alert__text">{failed.title}: {failed.error}</span>
+                                <button type="button" class="slds-button ci-toggle" data-group={failed.key} onclick={handleRetryGroup}>
+                                    Retry
+                                </button>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+
+                <!-- Side column ------------------------------------------------------------------- -->
+                <aside class="ci-aside">
+                    <template lwc:if={researchCard}>
+                        <section class="ci-side ci-side_green">
+                            <h3 class="ci-side__title ci-side__title_green">
+                                <lightning-icon icon-name={researchCard.icon} size="x-small" alternative-text=""></lightning-icon>
+                                <span>{researchCard.title}</span>
+                            </h3>
+                            <template for:each={researchCard.sections} for:item="section">
+                                <div key={section.key} class="ci-section">
+                                    <template lwc:if={section.showName}>
+                                        <h4 class="ci-section__name ci-section__name_green">{section.name}</h4>
+                                    </template>
+                                    <template for:each={section.blocks} for:item="block">
+                                        <c-cancer-info-block key={block.id} block={block} layout="compact"></c-cancer-info-block>
+                                    </template>
+                                    <template lwc:if={section.canToggle}>
+                                        <button
+                                            type="button"
+                                            class="slds-button ci-toggle"
+                                            data-section={section.key}
+                                            onclick={handleToggleSection}
+                                        >
+                                            {section.toggleLabel}
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                        </section>
+                    </template>
+
+                    <section class="ci-side">
+                        <h3 class="ci-side__title">Related Tools for {profile.name}</h3>
+                        <ul class="ci-tools">
+                            <template for:each={relatedTools} for:item="tool">
+                                <li key={tool.key}>
+                                    <a class="ci-tool" href={tool.href} target="_blank" rel="noopener noreferrer">
+                                        <span class="ci-tool__text">
+                                            <span class="ci-tool__label">{tool.label}</span>
+                                            <span class="ci-tool__caption">{tool.caption}</span>
+                                        </span>
+                                        <lightning-icon icon-name="utility:chevronright" size="xx-small" alternative-text="Opens in a new tab"></lightning-icon>
+                                    </a>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+
+                    <template lwc:if={hasSources}>
+                        <section class="ci-side">
+                            <h3 class="ci-side__title">
+                                <lightning-icon icon-name="utility:link" size="x-small" alternative-text=""></lightning-icon>
+                                <span>Trusted Sources</span>
+                            </h3>
+                            <ul class="ci-source-list">
+                                <template for:each={visibleSources} for:item="src">
+                                    <li key={src.key} class="ci-source-item">
+                                        <template lwc:if={src.href}>
+                                            <a href={src.href} target="_blank" rel="noopener noreferrer" class="ci-source-item__org">{src.organization}</a>
+                                        </template>
+                                        <template lwc:else>
+                                            <span class="ci-source-item__org">{src.organization}</span>
+                                        </template>
+                                        <template lwc:if={src.title}>
+                                            <span class="ci-source-item__title">{src.title}</span>
+                                        </template>
+                                        <template lwc:if={src.updated}>
+                                            <span class="ci-source-item__date">Updated {src.updated}</span>
+                                        </template>
+                                        <template lwc:if={src.attribution}>
+                                            <span class="ci-source-item__attr">{src.attribution}</span>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                            <template lwc:if={extraSourceCount}>
+                                <p class="ci-source-more">+ {extraSourceCount} more sources cited in the passages</p>
+                            </template>
+                        </section>
+                    </template>
+                </aside>
+            </div>
+
+            <footer class="ci-footer">
+                <lightning-icon icon-name="utility:info_alt" size="xx-small" alternative-text=""></lightning-icon>
+                <span>{disclaimer} Data provided by CancerInfo API.</span>
+            </footer>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Removes everything this package added. Use ONLY for uninstalling (see README, "Rollback"). -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>CancerInfo_Access</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>CancerInfo</members>
+        <name>CustomApplication</name>
+    </types>
+    <types>
+        <members>CancerInfo_Explorer</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>CancerInfo_Explorer</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>cancerInfoExplorer</members>
+        <members>cancerInfoProfile</members>
+        <members>cancerInfoBlock</members>
+        <members>cancerInfoTypeahead</members>
+        <members>cancerInfoUtils</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>CancerInfoControllerTest</members>
+        <members>CancerInfoController</members>
+        <members>CancerInfoApiClient</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>CancerInfo_API</members>
+        <name>NamedCredential</name>
+    </types>
+    <types>
+        <members>CancerInfo_API</members>
+        <name>ExternalCredential</name>
+    </types>
+    <version>67.0</version>
+</Package>

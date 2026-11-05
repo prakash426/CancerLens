@@ -1,0 +1,7 @@
+# Files that must never be pushed to the org
+**/jsconfig.json
+**/.eslintrc.json
+**/__tests__/**
+**/*.md
+.sfdx/
+.sf/

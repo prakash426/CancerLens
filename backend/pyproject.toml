@@ -1,0 +1,31 @@
+[project]
+name = "cancerlens-backend"
+version = "0.1.0-stage2"
+description = "CancerLens FastAPI backend (Track 1, Stage 2): wire contracts, operational SQLite, live Cancer Info API client, Meta + Baseten provider clients, SG-01..SG-10 pipelines, SEC-03/SEC-04 guards."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "httpx>=0.27",
+    "certifi>=2024.8.30",
+    "cachetools>=5.5",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "live_smoke: single-shot live call against a real provider (costs credits; never run in Stage 1)",
+]
+addopts = "-m 'not live_smoke'"

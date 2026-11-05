@@ -1,0 +1,101 @@
+<template>
+    <div class="slds-form-element">
+        <div class="ci-label-row">
+            <label class="slds-form-element__label" for="ci-input">
+                <template lwc:if={required}>
+                    <abbr class="slds-required" title="required">*</abbr>
+                </template>
+                {label}
+            </label>
+            <template lwc:if={fieldLevelHelp}>
+                <lightning-helptext content={fieldLevelHelp}></lightning-helptext>
+            </template>
+        </div>
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class={comboboxClass}>
+                    <div
+                        class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_left-right"
+                        role="none"
+                    >
+                        <span class="slds-input__icon slds-input__icon_left ci-input-icon">
+                            <lightning-icon icon-name={iconName} size="x-small" alternative-text=""></lightning-icon>
+                        </span>
+                        <input
+                            id="ci-input"
+                            lwc:ref="input"
+                            type="text"
+                            class="slds-input slds-combobox__input ci-input"
+                            role="combobox"
+                            autocomplete="off"
+                            aria-autocomplete="list"
+                            aria-controls="ci-listbox"
+                            aria-expanded={ariaExpanded}
+                            aria-haspopup="listbox"
+                            placeholder={placeholder}
+                            value={inputValue}
+                            maxlength={maxLength}
+                            disabled={disabled}
+                            required={required}
+                            oninput={handleInput}
+                            onfocus={handleFocus}
+                            onblur={handleBlur}
+                            onkeydown={handleKeyDown}
+                        />
+                        <template lwc:if={showClear}>
+                            <button
+                                type="button"
+                                class="slds-button slds-button_icon slds-input__icon slds-input__icon_right ci-clear"
+                                title="Clear"
+                                onmousedown={preventBlur}
+                                onclick={handleClear}
+                            >
+                                <lightning-icon icon-name="utility:clear" size="xx-small" alternative-text="Clear"></lightning-icon>
+                            </button>
+                        </template>
+                    </div>
+                    <div
+                        id="ci-listbox"
+                        class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid ci-dropdown"
+                        role="listbox"
+                        aria-label={label}
+                        onmousedown={preventBlur}
+                    >
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <template for:each={results} for:item="opt">
+                                <li key={opt.key} role="presentation" class="slds-listbox__item">
+                                    <div
+                                        id={opt.key}
+                                        class={opt.cssClass}
+                                        role="option"
+                                        aria-selected={opt.ariaSelected}
+                                        data-index={opt.index}
+                                        data-active={opt.active}
+                                        onclick={handleOptionClick}
+                                    >
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <lightning-icon icon-name={opt.icon} size="x-small" alternative-text=""></lightning-icon>
+                                        </span>
+                                        <span class="slds-media__body">
+                                            <span class="slds-listbox__option-text slds-listbox__option-text_entity">{opt.label}</span>
+                                            <template lwc:if={opt.meta}>
+                                                <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">{opt.meta}</span>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </li>
+                            </template>
+                            <template lwc:if={showNoMatch}>
+                                <li role="presentation" class="slds-listbox__item">
+                                    <div class="slds-media slds-listbox__option slds-listbox__option_plain ci-nomatch" role="presentation">
+                                        {noMatchText}
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

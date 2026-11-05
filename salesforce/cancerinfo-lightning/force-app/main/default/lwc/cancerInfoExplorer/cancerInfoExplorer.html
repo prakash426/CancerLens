@@ -1,0 +1,113 @@
+<template>
+    <article class="slds-card ci-shell">
+        <header class="ci-hero">
+            <div class="ci-hero__icon" aria-hidden="true">
+                <lightning-icon icon-name="utility:ribbon" size="small" variant="inverse" alternative-text=""></lightning-icon>
+            </div>
+            <div class="ci-hero__text">
+                <h2 class="ci-hero__title">{heroTitle}</h2>
+                <p class="ci-hero__subtitle">Source-linked cancer information from trusted health organisations</p>
+            </div>
+            <span class="ci-hero__pill">Educational · Not medical advice</span>
+        </header>
+
+        <div class="ci-body">
+            <div class="ci-mode" role="radiogroup" aria-label="What would you like to do?">
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked={questionChecked}
+                    class={questionButtonClass}
+                    data-mode="question"
+                    onclick={handleModeClick}
+                >
+                    <lightning-icon icon-name="utility:question" size="xx-small" alternative-text=""></lightning-icon>
+                    <span>Ask a question</span>
+                </button>
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked={claimChecked}
+                    class={claimButtonClass}
+                    data-mode="claim"
+                    onclick={handleModeClick}
+                >
+                    <lightning-icon icon-name="utility:quotation_marks" size="xx-small" alternative-text=""></lightning-icon>
+                    <span>Check a claim</span>
+                </button>
+            </div>
+
+            <div class="ci-form">
+                <c-cancer-info-typeahead
+                    class="ci-form__cancer"
+                    lwc:ref="cancer"
+                    label="Cancer type"
+                    required
+                    show-on-focus
+                    match-mode="all"
+                    icon-name="utility:ribbon"
+                    option-icon="utility:ribbon"
+                    placeholder={cancerPlaceholder}
+                    disabled={cancerDisabled}
+                    max-length="80"
+                    no-match-text="No cancer type matches - try another name"
+                    options={cancerOptions}
+                    value={cancerText}
+                    ontextchange={handleCancerText}
+                    onoptionselect={handleCancerSelect}
+                    onsubmitsearch={handleSearch}
+                ></c-cancer-info-typeahead>
+
+                <c-cancer-info-typeahead
+                    class="ci-form__prompt"
+                    lwc:ref="prompt"
+                    label={promptLabel}
+                    field-level-help={promptHelp}
+                    show-on-focus
+                    match-mode="any"
+                    icon-name={promptIcon}
+                    placeholder={promptPlaceholder}
+                    max-length="500"
+                    no-match-text=""
+                    options={promptOptions}
+                    value={promptText}
+                    ontextchange={handlePromptText}
+                    onoptionselect={handlePromptSelect}
+                    onsubmitsearch={handleSearch}
+                ></c-cancer-info-typeahead>
+            </div>
+
+            <template lwc:if={formError}>
+                <p class="ci-form-error" role="alert">{formError}</p>
+            </template>
+
+            <template lwc:if={cancersError}>
+                <div class="ci-load-error" role="alert">
+                    <lightning-icon icon-name="utility:warning" size="x-small" alternative-text="Error"></lightning-icon>
+                    <span>Couldn't load the cancer list: {cancersError}</span>
+                    <lightning-button label="Retry" variant="base" onclick={handleRetryCancers}></lightning-button>
+                </div>
+            </template>
+
+            <div class="ci-actions">
+                <lightning-button
+                    class="ci-search"
+                    variant="brand"
+                    label={searchLabel}
+                    icon-name="utility:search"
+                    disabled={searchDisabled}
+                    onclick={handleSearch}
+                ></lightning-button>
+                <template lwc:if={showReset}>
+                    <lightning-button label="Clear" variant="neutral" onclick={handleReset}></lightning-button>
+                </template>
+            </div>
+        </div>
+
+        <template lwc:if={request}>
+            <div class="ci-results">
+                <c-cancer-info-profile request={request}></c-cancer-info-profile>
+            </div>
+        </template>
+    </article>
+</template>

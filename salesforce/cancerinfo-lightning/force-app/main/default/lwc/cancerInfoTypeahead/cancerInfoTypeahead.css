@@ -1,0 +1,52 @@
+:host {
+    display: block;
+    --ci-green: #2e844a;
+    --ci-green-soft: #ebf7e6;
+}
+
+.ci-label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.ci-input-icon {
+    display: inline-flex;
+    align-items: center;
+    pointer-events: none;
+    --slds-c-icon-color-foreground-default: var(--ci-green);
+}
+
+.ci-input {
+    min-height: 2.5rem;
+}
+
+.ci-input:focus {
+    border-color: var(--ci-green);
+    box-shadow: 0 0 0 1px var(--ci-green);
+}
+
+.ci-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ci-dropdown {
+    z-index: 9000;
+}
+
+.ci-option {
+    --slds-c-icon-color-foreground-default: var(--ci-green);
+}
+
+.ci-option.slds-has-focus,
+.ci-option:hover {
+    background-color: var(--ci-green-soft);
+    box-shadow: inset 3px 0 0 var(--ci-green);
+}
+
+.ci-nomatch {
+    color: var(--slds-g-color-on-surface-1, #5c5c5c);
+    font-style: italic;
+}

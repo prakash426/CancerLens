@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="120" viewBox="0 0 1280 120" role="img" aria-label="Calm animated wave in emerald teal and sky blue">
+<defs>
+<linearGradient id="waveEmerald" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#0D6E5B"/>
+<stop offset="0.5" stop-color="#14F195"/>
+<stop offset="1" stop-color="#12DCE0"/>
+</linearGradient>
+<linearGradient id="waveSky" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#0A3D6B"/>
+<stop offset="0.5" stop-color="#12DCE0"/>
+<stop offset="1" stop-color="#22A8F8"/>
+</linearGradient>
+</defs>
+<rect x="0" y="0" width="1280" height="120" rx="20" fill="#010715"/>
+<g opacity="0.88">
+<path d="M0 62 Q80 22 160 62 T320 62 T480 62 T640 62 T800 62 T960 62 T1120 62 T1280 62 T1440 62 V120 H0 Z" fill="url(#waveEmerald)" opacity="0.72">
+<animateTransform attributeName="transform" type="translate" values="0 0; -160 0; 0 0" dur="7s" repeatCount="indefinite"/>
+</path>
+<path d="M0 76 Q80 40 160 76 T320 76 T480 76 T640 76 T800 76 T960 76 T1120 76 T1280 76 T1440 76 V120 H0 Z" fill="url(#waveSky)" opacity="0.62">
+<animateTransform attributeName="transform" type="translate" values="0 0; -160 0; 0 0" dur="9s" repeatCount="indefinite"/>
+</path>
+</g>
+<text x="640" y="72" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="20" font-weight="bold" fill="#E6FFFA">Built for clarity in a noisy space</text>
+</svg>

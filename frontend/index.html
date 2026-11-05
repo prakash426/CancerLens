@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CancerLens v1.0.0 — Source-Transparent Cancer Discovery &amp; Claim Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css?v=20261104g" />
+  </head>
+  <body data-active-mode="LEARN">
+    <!-- ====================================================================
+         1. Sticky Top Header Bar (Screenshot 1 Reference)
+         ==================================================================== -->
+    <header class="top-navbar">
+      <div class="app-container navbar-inner">
+        <div class="brand-group">
+          <div class="brand-logo-box" aria-hidden="true">
+            <img src="./img/brand-logo.png" width="38" height="38" alt="" style="border-radius:10px;display:block;" />
+          </div>
+          <div>
+            <div class="brand-title-row">
+              <h1 class="brand-name">CancerLens</h1>
+              <span class="badge-version">v1.0.0</span>
+              <span class="badge-dedication">💜 Built on CancerInfo API</span>
+            </div>
+            <p class="brand-subtitle">
+              Source-transparent cancer discovery &amp; claim verification platform with fact-level provenance
+            </p>
+          </div>
+        </div>
+
+        <nav class="navbar-actions" aria-label="Platform Controls &amp; Telemetry">
+          <span class="nav-pill-btn" title="CancerLens Backend Status">
+            <span class="status-dot" id="backend-status-dot"></span>
+            <span id="backend-status-text">Backend Preview</span>
+          </span>
+          <button type="button" class="nav-pill-btn" id="btn-theme-toggle" title="Switch Dark / Light Theme">
+            ☀️ Light View
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="app-container main-workspace-grid">
+      <!-- ==================================================================
+           2. Left Sidebar Column: Coverage Metrics Card
+           ================================================================== -->
+      <aside class="left-info-column" aria-label="Coverage Metrics">
+        <div class="metrics-panel" aria-label="Knowledge Base &amp; Verification Metrics">
+          <div class="metrics-panel-header">
+            <span>ARCHITECTURE &amp; COVERAGE METRICS</span>
+            <span>✨</span>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">Authoritative Sources</span>
+              <span class="metric-value">WHO · NCI · CDC</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Canonical Target Cancers</span>
+              <span class="metric-value">25 (20 Common + 5 Rare)</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Canonical Categories</span>
+              <span class="metric-value">11 Standard</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Claim Verification Engine</span>
+              <span class="metric-value">Baseten + Stage-4 Gate</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ==================================================================
+           3. Right Primary Workspace Column (Moved Up to Top)
+           ================================================================== -->
+      <div class="right-content-column">
+        <!-- Main Discovery & Claim Verification Command Card (Screenshot 2) -->
+        <section class="command-workspace-card" aria-label="Cancer Discovery and Claim Verification Command Bar">
+          <div class="command-header-row">
+            <div>
+              <h2 class="command-title">Cancer &amp; Claim Verification Discovery</h2>
+              <p class="command-subtitle">
+                Grounded information and non-binary claim evaluation from primary public health institutions and clinical guidelines.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Two Interactive Mode Cards Side-by-Side (Matches Screenshot 2) -->
+          <div class="mode-selector-grid" role="tablist" aria-label="Select CancerLens Operating Mode (SG-06 Locked)">
+            <button
+              type="button"
+              role="tab"
+              id="mode-card-learn"
+              class="mode-select-card mode-learn"
+              aria-selected="true"
+            >
+              <div class="mode-icon-badge" aria-hidden="true">🩺</div>
+              <div>
+                <div class="mode-card-title">
+                  Mode A: Explore &amp; Learn by Cancer Type
+                  <span class="mode-lock-tag">LEARN LENS</span>
+                </div>
+                <p class="mode-card-desc">
+                  Explore diagnosis, trusted treatment overviews, subtypes (NSCLC, SCLC, TNBC), and 11 clinical categories with honest coverage gap badges.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              id="mode-card-evaluate"
+              class="mode-select-card mode-evaluate"
+              aria-selected="false"
+            >
+              <div class="mode-icon-badge" aria-hidden="true">🛡️</div>
+              <div>
+                <div class="mode-card-title">
+                  Mode B: Verify &amp; Evaluate a Cancer Claim
+                  <span class="mode-lock-tag">EVALUATE LENS</span>
+                </div>
+                <p class="mode-card-desc">
+                  Split compound claims into atomic assertions via Baseten (`muse-spark-open-1026`), detect 5D context mismatches, and verify every citation ID &amp; quote.
+                </p>
+              </div>
+            </button>
+          </div>
+
+          <!-- Multimodal Input Toolbar (Visible in Mode B: Verify & Evaluate) -->
+          <div class="multimodal-toolbar" id="multimodal-toolbar" hidden>
+            <div class="modality-pills" role="group" aria-label="Claim Input Modality">
+              <span class="suggestions-label">Input Modality:</span>
+              <button type="button" class="modality-btn" data-modality-trigger="TEXT" aria-pressed="true">
+                📝 Direct Text Claim
+              </button>
+              <button type="button" class="modality-btn" data-modality-trigger="IMAGE_OCR" aria-pressed="false">
+                🖼️ Screenshot OCR (≤5MB)
+              </button>
+              <button type="button" class="modality-btn" data-modality-trigger="URL_EXTRACT" aria-pressed="false">
+                🔗 Public URL (SSRF-Guarded)
+              </button>
+            </div>
+            <span class="privacy-warning-inline">
+              🔒 Do not upload personal medical records, biopsy slides, or clinical scans.
+            </span>
+          </div>
+
+          <!-- Mandatory Editable Multimodal Confirmation Drawer (FR-10 / SG-01) -->
+          <div class="confirmation-drawer" id="confirmation-drawer" hidden>
+            <div class="confirmation-drawer-header">
+              <strong id="confirmation-modality-title">
+                🖼️ Extracted Claim Text — Review &amp; Confirm Before Evaluation
+              </strong>
+              <span class="mode-lock-tag">User Confirmation Required</span>
+            </div>
+            <div class="confirmation-source-row" id="ocr-source-row" hidden>
+              <button type="button" class="nav-pill-btn" id="btn-choose-screenshot">Upload image</button>
+              <span class="confirmation-file-name" id="ocr-file-name">PNG, JPEG or WEBP, max 5 MB.</span>
+              <input type="file" id="ocr-file-input" accept="image/png,image/jpeg,image/webp" hidden />
+            </div>
+            <div class="confirmation-source-row" id="url-source-row" hidden>
+              <label for="url-extract-input" class="sr-only">Public article URL</label>
+              <input type="url" id="url-extract-input" class="confirmation-url-input" placeholder="https://example.org/article" inputmode="url" />
+              <button type="button" class="nav-pill-btn primary-sky" id="btn-fetch-url">Fetch text</button>
+            </div>
+            <p class="confirmation-status" id="confirmation-status" role="status"></p>
+            <label for="confirmation-textarea" class="sr-only">Review and edit extracted text</label>
+            <textarea id="confirmation-textarea" class="confirmation-textarea" placeholder="Extracted text appears here for your review. You can also type or paste the claim manually."></textarea>
+            <div class="confirmation-actions">
+              <button type="button" class="nav-pill-btn" id="btn-cancel-extracted">Cancel</button>
+              <button type="button" class="nav-pill-btn primary-sky" id="btn-confirm-extracted">
+                ✓ Confirm Text &amp; Run Baseten Verification
+              </button>
+            </div>
+          </div>
+
+          <!-- Unified Search / Claim Input Row (Screenshot 2) -->
+          <form id="main-search-form" class="search-bar-row">
+            <div class="search-input-wrapper">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <label for="main-query-input" class="sr-only">Search cancer type or enter a claim to verify</label>
+              <input
+                type="text"
+                id="main-query-input"
+                class="main-query-input"
+                value=""
+                placeholder="Search 25 cancers (e.g., Ovarian cancer stages, Breast cancer symptoms, Lung cancer) or ask a general question..."
+                autocomplete="off"
+              />
+            </div>
+            <button type="submit" id="main-submit-btn" class="main-action-btn">
+              Explore Topic
+            </button>
+          </form>
+
+          <!-- Suggested Cancers / Suggested Claims Row (Screenshot 2) -->
+          <div class="suggestions-row" id="suggestions-row"></div>
+
+          <!-- Recent Searches Row (Screenshot 2) -->
+          <div class="recent-searches-bar">
+            <div class="recent-links-list">
+              <span style="color:var(--text-muted);">Recent Searches:</span>
+              <div id="recent-links-list" class="recent-links-list"></div>
+            </div>
+            <button type="button" class="clear-history-btn" id="btn-clear-history">
+              Clear History
+            </button>
+          </div>
+        </section>
+
+        <!-- Main Two-Column Profile / Verdict Dossier (Shown after user searches) -->
+        <section id="main-dossier-container" class="dossier-card" aria-live="polite" hidden></section>
+
+        <!-- Authoritative Grounded Sources 2-Column Grid (Shown after user searches) -->
+        <section id="sources-section" class="sources-section" aria-label="Authoritative Grounded Sources" hidden>
+          <div class="sources-header-row">
+            <div>
+              <h3 id="sources-count-heading" style="font-size:1.25rem;font-weight:800;margin:0 0 4px 0;">
+                Authoritative Grounded Sources (2)
+              </h3>
+              <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">
+                Every factual result is linked to its primary public health authority via <strong>Cancer Info API</strong> with separated dates and WHO Licence <code>202610792</code> attribution.
+              </p>
+            </div>
+          </div>
+
+          <div id="sources-grid-container" class="sources-grid-2col"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ====================================================================
+         7. 3-Column Safety, Helplines & WHO Compliance Footer (Screenshot 4)
+         ==================================================================== -->
+    <footer class="site-footer">
+      <div class="app-container footer-grid-3col">
+        <div>
+          <div class="brand-group" style="margin-bottom:10px;">
+            <div class="brand-logo-box" style="width:30px;height:30px;" aria-hidden="true">
+              <img src="./img/brand-logo.png" width="30" height="30" alt="" style="border-radius:10px;display:block;" />
+            </div>
+            <strong style="font-size:1rem;">CancerLens</strong>
+          </div>
+          <p class="footer-text">
+            CancerLens is a public health discovery and claim verification workspace consuming the pre-existing <strong>Cancer Info API</strong> and powered by Meta Muse Spark 1.3 and Baseten Muse Spark Open.
+          </p>
+          <p class="footer-text" style="font-size:0.74rem;">
+            © 2026 CancerLens · Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026).
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">IMMEDIATE ASSISTANCE &amp; HELPLINES</h4>
+          <div class="helpline-item">
+            <span class="helpline-title">📞 NCI Cancer Information: 1-800-4-CANCER</span>
+            <span class="footer-text">English &amp; Spanish · Mon–Fri 9am–9pm ET</span>
+          </div>
+          <div class="helpline-item">
+            <span class="helpline-title">📞 American Cancer Society: 1-800-227-2345</span>
+            <span class="footer-text">Available 24 hours a day, 7 days a week</span>
+          </div>
+          <div class="helpline-item">
+            <span class="helpline-title emergency">❤️ 988 Suicide &amp; Crisis Lifeline: Dial 988</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">SAFETY &amp; MEDICAL BOUNDARIES</h4>
+          <p class="footer-text">
+            This application does not provide clinical diagnoses, prescribe medications, set doses, or interpret clinical scans/lesions. All medical decisions must be made in consultation with a qualified healthcare provider.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div
+      id="app-toast"
+      role="status"
+      aria-live="polite"
+      hidden
+      style="position:fixed;bottom:24px;right:24px;z-index:100;background:#0284c7;color:#fff;padding:10px 18px;border-radius:10px;font-size:0.84rem;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.5);"
+    ></div>
+
+    <!-- Ribbon loading overlay: boot splash plus every live backend call -->
+    <div class="loading-overlay" id="loading-overlay" hidden>
+      <div class="loading-box" role="status" aria-live="polite">
+        <div class="spinner-frame" aria-hidden="true">
+          <img class="ribbon-spinner-img" src="./img/ribbon-spinner.png" width="84" height="119" alt="" />
+          <div class="spinner-wipe"></div>
+          <div class="spinner-dot"></div>
+          <div class="spinner-shine"></div>
+        </div>
+        <p class="loading-text" id="loading-text">Loading verified evidence...</p>
+      </div>
+    </div>
+
+    <script src="./js/data.js?v=20261104d"></script>
+    <script src="./js/app.js?v=20261104g"></script>
+  </body>
+</html>

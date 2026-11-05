@@ -1,0 +1,71 @@
+<template>
+    <div class={containerClass}>
+        <template lwc:if={isConsensus}>
+            <span class="ci-chip ci-chip_green">Consensus across sources</span>
+        </template>
+        <template lwc:if={heading}>
+            <p class="ci-block__heading">
+                {heading}
+                <template lwc:if={region}>
+                    <span class="ci-chip">{region}</span>
+                </template>
+            </p>
+        </template>
+
+        <template for:each={parts} for:item="part">
+            <div key={part.key}>
+                <template lwc:if={part.isSubheading}>
+                    <p class="ci-subheading">{part.text}</p>
+                </template>
+                <template lwc:if={part.isText}>
+                    <p class={part.textClass}>{part.text}</p>
+                </template>
+                <template lwc:if={part.isList}>
+                    <ul class="ci-bullets">
+                        <template for:each={part.items} for:item="item">
+                            <li key={item.key}>{item.text}</li>
+                        </template>
+                    </ul>
+                </template>
+                <template lwc:if={part.isTiles}>
+                    <ul class="ci-tiles" role="list">
+                        <template for:each={part.items} for:item="item">
+                            <li key={item.key} class="ci-tile">{item.text}</li>
+                        </template>
+                    </ul>
+                </template>
+            </div>
+        </template>
+
+        <template lwc:if={showReadMore}>
+            <a class="ci-readmore" href={firstSourceHref} target="_blank" rel="noopener noreferrer">
+                Read the full passage at the source
+            </a>
+        </template>
+
+        <template lwc:if={showSources}>
+            <div class="ci-sources">
+                <template for:each={sources} for:item="src">
+                    <p key={src.key} class="ci-source">
+                        <span class="ci-source__label">Source:</span>
+                        <template lwc:if={src.href}>
+                            <a href={src.href} target="_blank" rel="noopener noreferrer" title={src.title}>{src.organization}</a>
+                        </template>
+                        <template lwc:else>
+                            <span>{src.organization}</span>
+                        </template>
+                        <template lwc:if={src.title}>
+                            <span class="ci-source__title"> · {src.title}</span>
+                        </template>
+                        <template lwc:if={src.updated}>
+                            <span class="ci-source__date"> · Updated {src.updated}</span>
+                        </template>
+                        <template lwc:if={showRegionInSource}>
+                            <span class="ci-chip ci-chip_inline">{region}</span>
+                        </template>
+                    </p>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,116 @@
+================================================================================
+CANCERLENS MODE B (EVALUATE LENS) — PUBLIC URL EXTRACTION TEST SUITE (15 URLs)
+================================================================================
+All 15 URLs below have been verified live against CancerLens's SSRF-guarded
+`POST /api/v1/extract/url` pipeline (HTTP 200, up to 3,000 extracted chars).
+
+How to test in CancerLens UI:
+1. Switch to "Mode B: Verify & Evaluate a Cancer Claim (EVALUATE LENS)".
+2. Click "🔗 Public URL (SSRF-Guarded)" in the Input Modality bar.
+3. Paste any URL below and click "Fetch text".
+4. Review the extracted text (or highlight/keep a specific claim paragraph)
+   and click "✓ Confirm Text & Run Baseten Verification".
+
+--------------------------------------------------------------------------------
+PART 1: LEGITIMATE & VALID CLINICAL CLAIMS (8 URLs — Expected: SUPPORTED)
+--------------------------------------------------------------------------------
+
+1. NCI — HPV and Cancer (HPV Vaccination & Cervical/Oropharyngeal Prevention)
+   URL: https://www.cancer.gov/about-cancer/causes-prevention/risk/infectious-agents/hpv-and-cancer
+   Cancer Scope: Cervical cancer (`cervical-cancer`), Oropharyngeal / Head & Neck
+   Core Claim in Page: High-risk HPV infections cause nearly all cervical cancers, and HPV vaccination before exposure prevents most HPV-attributable precancers and cancers.
+   Expected Verdict: SUPPORTED
+
+2. NCI — Harms of Cigarette Smoking and Health Benefits of Quitting
+   URL: https://www.cancer.gov/about-cancer/causes-prevention/risk/tobacco/cessation-fact-sheet
+   Cancer Scope: Lung cancer (`lung-cancer`), Bladder (`bladder-cancer`), Pancreatic (`pancreatic-cancer`), Esophageal (`oesophageal-cancer`)
+   Core Claim in Page: Cigarette smoking causes lung, bladder, pancreatic, esophageal, and laryngeal cancers, and quitting smoking at any age lowers the risk of developing and dying from cancer.
+   Expected Verdict: SUPPORTED
+
+3. NCI — Colorectal Cancer Screening (PDQ) — Patient Version
+   URL: https://www.cancer.gov/types/colorectal/patient/colorectal-screening-pdq
+   Cancer Scope: Colorectal cancer (`colorectal-cancer`)
+   Core Claim in Page: Regular colorectal screening (colonoscopy, sigmoidoscopy, or stool tests) detects polyps and early-stage colorectal cancer and reduces colorectal cancer mortality.
+   Expected Verdict: SUPPORTED
+
+4. NCI — Breast Cancer Screening (PDQ) — Patient Version
+   URL: https://www.cancer.gov/types/breast/patient/breast-screening-pdq
+   Cancer Scope: Breast cancer (`breast-cancer`)
+   Core Claim in Page: Screening mammography helps detect breast cancer early in asymptomatic women and reduces deaths from breast cancer in recommended age groups.
+   Expected Verdict: SUPPORTED
+
+5. NCI — Non-Small Cell Lung Cancer Treatment (PDQ) — Patient Version
+   URL: https://www.cancer.gov/types/lung/patient/non-small-cell-lung-treatment-pdq
+   Cancer Scope: Lung cancer (`lung-cancer` / NSCLC)
+   Core Claim in Page: Standard treatments for non-small cell lung cancer include surgery, radiation therapy, chemotherapy, targeted therapy (for specific driver mutations like EGFR/ALK), and immunotherapy.
+   Expected Verdict: SUPPORTED
+
+6. WHO — Global Cancer Overview & Prevention Fact Sheet
+   URL: https://www.who.int/news-room/fact-sheets/detail/cancer
+   Cancer Scope: Multi-cancer (`lung-cancer`, `breast-cancer`, `colorectal-cancer`, `cervical-cancer`, `liver-cancer`)
+   Core Claim in Page: Between 30% and 50% of cancers are preventable by avoiding tobacco, maintaining a healthy body weight, limiting alcohol, and vaccinating against HPV and Hepatitis B.
+   Expected Verdict: SUPPORTED
+
+7. WHO — Cervical Cancer Fact Sheet
+   URL: https://www.who.int/news-room/fact-sheets/detail/cervical-cancer
+   Cancer Scope: Cervical cancer (`cervical-cancer`)
+   Core Claim in Page: Persistent infection with high-risk human papillomavirus (HPV) is the primary cause of cervical cancer; HPV vaccination and screening/treatment of precancerous lesions effectively prevent the disease.
+   Expected Verdict: SUPPORTED
+
+8. WHO — Breast Cancer Fact Sheet
+   URL: https://www.who.int/news-room/fact-sheets/detail/breast-cancer
+   Cancer Scope: Breast cancer (`breast-cancer`)
+   Core Claim in Page: Early detection and multidisciplinary treatment (surgery, radiation, endocrine therapy, HER2-targeted therapy, and chemotherapy) significantly improve breast cancer survival.
+   Expected Verdict: SUPPORTED
+
+--------------------------------------------------------------------------------
+PART 2: INVALID, MYTH, OR CONTEXT-MISMATCH CLAIMS (7 URLs — Expected:
+        CONTRADICTED / MISLEADING_CONTEXT / UNSUPPORTED)
+--------------------------------------------------------------------------------
+
+9. NCI — Common Cancer Myths and Misconceptions
+   URL: https://www.cancer.gov/about-cancer/causes-prevention/risk/myths
+   Cancer Scope: Breast cancer (`breast-cancer`), Brain/CNS (`brain-cns-cancer`), General oncology
+   Claims Addressed in Page:
+   - Invalid Myth 1: "Eating sugar makes cancer worse / cutting all sugar starves tumors."
+   - Invalid Myth 2: "Artificial sweeteners cause cancer in humans."
+   - Invalid Myth 3: "Cell phones, power lines, or antiperspirants/deodorants cause breast or brain cancer."
+   - Invalid Myth 4: "Cancer surgery or a tumor biopsy causes cancer to spread in the air."
+   Expected Verdict: CONTRADICTED / MISLEADING_CONTEXT (depending on whether evaluating the myth statement vs. the NCI rebuttal)
+
+10. NCI — Laetrile / Amygdalin (Vitamin B-17) PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/laetrile-pdq
+    Cancer Scope: General oncology / Breast / Lung / Colorectal
+    Invalid Claim Addressed: Apricot-pit extract Laetrile (amygdalin / "Vitamin B-17") cures cancer in humans without toxicity. (Clinical trials showed no anticancer benefit and documented risk of hydrogen cyanide poisoning.)
+    Expected Verdict: CONTRADICTED (if testing the pro-Laetrile claim) / SUPPORTED (if verifying NCI's warning that Laetrile shows little anticancer activity and causes cyanide side effects)
+
+11. NCI — Gerson Therapy PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/gerson-pdq
+    Cancer Scope: Melanoma (`melanoma-of-skin`), Pancreatic (`pancreatic-cancer`), General oncology
+    Invalid Claim Addressed: An organic vegetarian juice diet combined with coffee enemas ("Gerson therapy") detoxifies the liver and cures advanced cancer.
+    Expected Verdict: CONTRADICTED / UNSUPPORTED
+
+12. NCI — Essiac and Flor Essence Herbal Tea PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/essiac-pdq
+    Cancer Scope: Breast cancer (`breast-cancer`), Prostate (`prostate-cancer`), General oncology
+    Invalid Claim Addressed: Herbal tea mixtures Essiac and Flor Essence shrink tumors, boost immunity, and cure cancer in humans.
+    Expected Verdict: CONTRADICTED / UNSUPPORTED
+
+13. NCI — Intravenous High-Dose Vitamin C PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/vitamin-c-pdq
+    Cancer Scope: Lung (`lung-cancer`), Pancreatic (`pancreatic-cancer`), Colorectal (`colorectal-cancer`), Breast (`breast-cancer`)
+    Context-Mismatch Claim Addressed: High-dose Vitamin C alone cures stage IV cancer without chemotherapy. (Preclinical/early adjunctive studies exist, but oral/standalone high-dose Vitamin C has not been shown to cure cancer in randomized human trials.)
+    Expected Verdict: MISLEADING_CONTEXT / CONTRADICTED (5D Mismatch: Study Design & Treatment Role)
+
+14. NCI — Cartilage (Bovine and Shark) PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/cartilage-pdq
+    Cancer Scope: Lung (`lung-cancer`), Breast (`breast-cancer`), Colorectal (`colorectal-cancer`), Renal (`kidney-cancer`)
+    Invalid Claim Addressed: Shark or bovine cartilage supplements block tumor blood vessels and cure advanced solid tumors because "sharks don't get cancer."
+    Expected Verdict: CONTRADICTED
+
+15. NCI — Hydrazine Sulfate PDQ — Patient Version
+    URL: https://www.cancer.gov/about-cancer/treatment/cam/patient/hydrazine-sulfate-pdq
+    Cancer Scope: Lung cancer (`lung-cancer`), Colorectal (`colorectal-cancer`)
+    Invalid Claim Addressed: Hydrazine sulfate reverses cancer cachexia and causes tumor regression in advanced non-small cell lung and colorectal cancer. (Randomized NCI-sponsored phase III trials found no survival or tumor response benefit.)
+    Expected Verdict: CONTRADICTED
+================================================================================

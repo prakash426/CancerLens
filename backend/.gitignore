@@ -1,0 +1,8 @@
+.env
+.env.local
+cancerlens_app.db
+cancerlens_app.db-*
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
