@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import certifi
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -96,6 +96,27 @@ class Settings(BaseSettings):
     # suite stays hermetic (no real DNS/fetch) and the owner enables public-URL
     # fetching explicitly; mirrors the LIVE_LLM_CALLS_ENABLED idiom.
     URL_EXTRACTION_ENABLED: bool = False
+
+    @field_validator(
+        "META_PRICE_INPUT_PER_MTOK_USD",
+        "META_PRICE_OUTPUT_PER_MTOK_USD",
+        "META_PRICE_CACHED_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_CACHED_INPUT_PER_MTOK_USD",
+        "BASETEN_PRICE_OUTPUT_PER_MTOK_USD",
+        mode="before",
+    )
+    @classmethod
+    def _blank_price_means_unset(cls, value: object) -> object:
+        """A blank price (``KEY=`` in .env.local) means unset, not a crash.
+
+        ``.env.example`` ships the Meta prices blank, so a fresh
+        ``cp .env.example .env.local`` must load with those prices as None
+        (live calls stay refused until real prices are set).
+        """
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     def resolved_db_path(self) -> Path:
         """Relative DB paths resolve against ``backend/`` so the file location never depends on CWD."""
