@@ -10,6 +10,7 @@ envelope degrades to source facts only, with the reason stated.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -22,7 +23,15 @@ from ..db.operational_store import BudgetExceededError
 from ..providers.governance import LiveCallsDisabledError, ProviderError
 from ..providers.json_utils import IncompleteGenerationError, ModelOutputValidationError, wrap_untrusted
 from ..schemas.enums import OUTCOME_LABELS, LensMode, OutcomeCode, PipelineState, RetrievalState
-from ..schemas.envelope import CancerInfoEvidenceItem, ComplianceAndAttributionBanner, LearnCategoryCard, LearnRequest, ResultEnvelope
+from ..schemas.envelope import (
+    CancerInfoEvidenceItem,
+    ComplianceAndAttributionBanner,
+    LearnCategoryCard,
+    LearnCoverageCategory,
+    LearnCoverageResponse,
+    LearnRequest,
+    ResultEnvelope,
+)
 from .common import (
     NO_PROVIDER,
     NOT_AI_PROCESSABLE_NOTE,
@@ -104,6 +113,22 @@ def _humanize_slug(slug: str | None) -> str | None:
     return " ".join(slug.replace("-", " ").replace("_", " ").split())
 
 
+def build_learn_search_query(cancer_id: str | None, subtype_id: str | None, category_slug: str | None) -> str:
+    """No-question search words for Learn retrieval.
+
+    Humanizes slugs ("lung-cancer" -> "lung cancer") because upstream
+    full-text search never matches hyphenated slugs. Shared by the Learn
+    pipeline and the coverage probe so a probe always predicts what a real
+    category click retrieves.
+    """
+    subtype_words = (
+        None
+        if not subtype_id or subtype_id.strip().lower() == "all"
+        else _humanize_slug(subtype_id)
+    )
+    return " ".join(filter(None, [_humanize_slug(cancer_id), subtype_words, _humanize_slug(category_slug)]))
+
+
 def _chips(c: ServiceContainer, cancer_id: str, slug: str) -> list[str]:
     try:
         return [row["canonical_claim_text"] for row in c.store.list_approved_claims_for_category(cancer_id, slug, 5)]
@@ -126,6 +151,50 @@ def _facts_only_cards(c: ServiceContainer, cancer_id: str, items: list[CancerInf
             )
         )
     return cards
+
+
+async def run_learn_coverage(
+    c: ServiceContainer, cancer_id: str, subtype_id: str | None, slugs: list[str]
+) -> LearnCoverageResponse:
+    """Probe per-category data availability with the exact retrieval ``/learn`` uses.
+
+    One ``search_evidence`` call per slug (same query, filters and limit as a
+    real category click, so probes warm the client cache for the follow-up
+    click), fanned out in parallel. Retrieval only, never a model call.
+    ``TOOL_FAILED`` is unknown rather than empty: those categories stay
+    visible and the click itself reports the outage.
+    """
+    cancer_filter = None if cancer_id == "general-oncology" else cancer_id
+
+    async def _probe(slug: str) -> tuple[str, RetrievalState]:
+        state, _items = await c.cancer_info.search_evidence(
+            build_learn_search_query(cancer_id, subtype_id, slug),
+            cancer_id=cancer_filter,
+            subtype_id=subtype_id,
+            category_slug=slug,
+            limit=LEARN_SEARCH_LIMIT,
+        )
+        return slug, state
+
+    probed = await asyncio.gather(*(_probe(slug) for slug in slugs))
+    states = {state for _, state in probed}
+    if RetrievalState.SEARCH_EXECUTED_WITH_MATCHES in states:
+        aggregate = RetrievalState.SEARCH_EXECUTED_WITH_MATCHES
+    elif RetrievalState.TOOL_FAILED in states:
+        aggregate = RetrievalState.TOOL_FAILED
+    else:
+        aggregate = RetrievalState.SEARCH_EXECUTED_NO_MATCHES
+    return LearnCoverageResponse(
+        retrieval_state=aggregate,
+        cancer_id=cancer_id,
+        subtype_id=subtype_id,
+        categories=[
+            LearnCoverageCategory(
+                category_slug=slug, has_data=state is not RetrievalState.SEARCH_EXECUTED_NO_MATCHES
+            )
+            for slug, state in probed
+        ],
+    )
 
 
 async def run_learn_pipeline(req: LearnRequest, c: ServiceContainer) -> ResultEnvelope:
@@ -153,16 +222,7 @@ async def run_learn_pipeline(req: LearnRequest, c: ServiceContainer) -> ResultEn
             )
 
     # Mechanism A: only APPROVED mappings for the same cancer may expand the query.
-    # No typed question: humanize the slug fallback ("lung-cancer" -> "lung cancer")
-    # because upstream full-text search never matches hyphenated slugs.
-    subtype_words = (
-        None
-        if not req.subtype_id or req.subtype_id.strip().lower() == "all"
-        else _humanize_slug(req.subtype_id)
-    )
-    search_query = question or " ".join(
-        filter(None, [_humanize_slug(req.cancer_id), subtype_words, _humanize_slug(req.category_slug)])
-    )
+    search_query = question or build_learn_search_query(req.cancer_id, req.subtype_id, req.category_slug)
     mapping_applied: str | None = None
     if question:
         mapping = c.store.lookup_approved_query_mapping(question)
@@ -283,4 +343,11 @@ async def run_learn_pipeline(req: LearnRequest, c: ServiceContainer) -> ResultEn
     })
 
 
-__all__ = ["LearnSynthesisOutput", "NO_PROVIDER", "build_learn_input", "run_learn_pipeline"]
+__all__ = [
+    "LearnSynthesisOutput",
+    "NO_PROVIDER",
+    "build_learn_input",
+    "build_learn_search_query",
+    "run_learn_coverage",
+    "run_learn_pipeline",
+]

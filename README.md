@@ -111,6 +111,7 @@ Full contract: [backend/openapi.json](backend/openapi.json). Main routes:
 | ------ | ---- | ------- |
 | GET | `/api/v1/cancers` | Cancer catalog |
 | POST | `/api/v1/learn` | Plain language explanation with citations |
+| GET | `/api/v1/learn/coverage` | Per-category data availability for one cancer |
 | POST | `/api/v1/evaluate` | Claim verdict with 5D context comparison |
 | POST | `/api/v1/evaluate/double-check` | Consistency recheck against the same facts |
 | POST | `/api/v1/extract/url` | Guarded public URL text extraction |

@@ -11,7 +11,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin
 
 import httpx
-from fastapi import APIRouter, File, Header, Request, Response, UploadFile, status
+from fastapi import APIRouter, File, Header, Query, Request, Response, UploadFile, status
 
 from ..clients.cancerinfo_client import CancerInfoAPIError
 from ..config import create_verified_ssl_context
@@ -21,6 +21,7 @@ from ..investigator import (
     ServiceContainer,
     run_consistency_double_check,
     run_evaluate_investigator,
+    run_learn_coverage,
     run_learn_pipeline,
 )
 from ..investigator.common import new_request_id
@@ -41,6 +42,7 @@ from ..schemas.envelope import (
     ErrorResponse,
     EvaluateRequest,
     ExtractionResponse,
+    LearnCoverageResponse,
     LearnRequest,
     ProviderPoolStatus,
     ResultEnvelope,
@@ -89,6 +91,31 @@ async def list_cancers(request: Request) -> CancerCatalogResponse:
 @router.post("/learn", response_model=ResultEnvelope, responses=_ERRORS, tags=["learn"])
 async def learn(body: LearnRequest, request: Request) -> ResultEnvelope:
     return await run_learn_pipeline(body, container(request))
+
+
+_MAX_COVERAGE_SLUGS = 25
+
+
+@router.get("/learn/coverage", response_model=LearnCoverageResponse, responses=_ERRORS, tags=["learn"])
+async def learn_coverage(
+    request: Request,
+    cancer_id: str = Query(default="general-oncology", min_length=1, max_length=120),
+    subtype_id: str | None = Query(default=None, max_length=120),
+    category_slug: list[str] = Query(default=[]),
+) -> LearnCoverageResponse:
+    """Per-category data availability for one cancer (retrieval only, $0.00).
+
+    The frontend probes its own category list on cancer select and hides
+    ``has_data=False`` slugs, so judges never click a dead button. A probe
+    uses the exact retrieval a real ``/learn`` click runs, so coverage always
+    predicts what the click would show.
+    """
+    slugs = list(dict.fromkeys(s.strip() for s in category_slug if s and s.strip()))
+    if not slugs:
+        raise ValueError("At least one category_slug query value is required.")
+    if len(slugs) > _MAX_COVERAGE_SLUGS:
+        raise ValueError(f"At most {_MAX_COVERAGE_SLUGS} category_slug values per call.")
+    return await run_learn_coverage(container(request), cancer_id.strip() or "general-oncology", subtype_id, slugs)
 
 
 @router.post("/evaluate", response_model=ResultEnvelope, responses=_ERRORS, tags=["evaluate"])

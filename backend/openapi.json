@@ -98,6 +98,112 @@
         }
       }
     },
+    "/api/v1/learn/coverage": {
+      "get": {
+        "tags": [
+          "learn"
+        ],
+        "summary": "Learn Coverage",
+        "description": "Per-category data availability for one cancer (retrieval only, $0.00).\n\nThe frontend probes its own category list on cancer select and hides\n``has_data=False`` slugs, so judges never click a dead button. A probe\nuses the exact retrieval a real ``/learn`` click runs, so coverage always\npredicts what the click would show.",
+        "operationId": "learn_coverage_api_v1_learn_coverage_get",
+        "parameters": [
+          {
+            "name": "cancer_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "default": "general-oncology",
+              "title": "Cancer Id"
+            }
+          },
+          {
+            "name": "subtype_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subtype Id"
+            }
+          },
+          {
+            "name": "category_slug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Category Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnCoverageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation or confirmation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget circuit breaker open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider failed or model output rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider disabled / not configured, or Cancer Info API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/evaluate": {
       "post": {
         "tags": [
@@ -953,7 +1059,7 @@
           },
           "claim_text": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 8000,
             "minLength": 3,
             "title": "Claim Text"
           },
@@ -1086,7 +1192,7 @@
         "properties": {
           "claim_text": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 8000,
             "minLength": 3,
             "title": "Claim Text"
           },
@@ -1241,13 +1347,71 @@
         ],
         "title": "LearnCategoryCard"
       },
+      "LearnCoverageCategory": {
+        "properties": {
+          "category_slug": {
+            "type": "string",
+            "title": "Category Slug"
+          },
+          "has_data": {
+            "type": "boolean",
+            "title": "Has Data"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "category_slug",
+          "has_data"
+        ],
+        "title": "LearnCoverageCategory",
+        "description": "Per-category data availability for one cancer. ``has_data=False`` means a\ndeterministic upstream empty result; the frontend hides those categories."
+      },
+      "LearnCoverageResponse": {
+        "properties": {
+          "retrieval_state": {
+            "$ref": "#/components/schemas/RetrievalState"
+          },
+          "cancer_id": {
+            "type": "string",
+            "title": "Cancer Id"
+          },
+          "subtype_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtype Id"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/LearnCoverageCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "retrieval_state",
+          "cancer_id"
+        ],
+        "title": "LearnCoverageResponse",
+        "description": "Which Learn categories hold records for a cancer. Retrieval only, never a model call."
+      },
       "LearnRequest": {
         "properties": {
           "cancer_id": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
-            "title": "Cancer Id"
+            "title": "Cancer Id",
+            "default": "general-oncology"
           },
           "subtype_id": {
             "anyOf": [
@@ -1294,9 +1458,6 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "cancer_id"
-        ],
         "title": "LearnRequest"
       },
       "LensMode": {
