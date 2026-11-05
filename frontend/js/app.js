@@ -743,7 +743,7 @@ async function renderResultsCardPng(snap) {
   ctx.fillText("CancerLens Results", pad + 112, y + 46);
   ctx.fillStyle = "#94a3b8";
   ctx.font = "400 26px Inter, system-ui, sans-serif";
-  const modeLabel = snap.mode === "EVALUATE" ? "Verify & Evaluate" : "Explore & Learn";
+  const modeLabel = snap.mode === "EVALUATE" ? "Verify" : "Learn";
   const topicLabel = results.cancerName ? ` · ${results.cancerName}` : "";
   ctx.fillText(`${modeLabel}${topicLabel}`, pad + 112, y + 82);
   y += 96 + 36;
@@ -1178,7 +1178,7 @@ function renderLearnDossierHtml(env) {
         claimObj.claim_text || claimObj
       )}">
         <span>🛡️ "${escapeHtml(claimObj.claim_text || claimObj)}"</span>
-        <span style="color:var(--accent-eval);font-size:0.75rem;white-space:nowrap;">Verify in Mode B →</span>
+        <span style="color:var(--accent-eval);font-size:0.75rem;white-space:nowrap;">Verify this claim →</span>
       </button>
     `
     )
@@ -1213,7 +1213,7 @@ function renderLearnDossierHtml(env) {
   return `
     <div class="dossier-top-row">
       <div>
-        <span class="profile-pill">🔬 Cancer Information Profile • Mode A (Learn Lens)</span>
+        <span class="profile-pill">🔬 Cancer Information Profile • Learn</span>
         <h2 class="dossier-title">${escapeHtml(activeHeading)}</h2>
         <p class="dossier-meta-line">
           Known aliases: ${escapeHtml(cancerMeta.aliases)} · Anatomy: ${escapeHtml(
@@ -1305,9 +1305,9 @@ function renderLearnDossierHtml(env) {
       <!-- Right Sidebar Column (Highlights, Mechanism B Claims & Related Tools — Matches Screenshot 3) -->
       <aside>
         <div class="sidebar-highlight-card">
-          <h4 class="sidebar-card-eyebrow">✨ Common Public Claims in This Topic (Pivot to Mode B)</h4>
+          <h4 class="sidebar-card-eyebrow">✨ Common Public Claims in This Topic (Check in Verify)</h4>
           <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 12px 0;">
-            Click any common claim below to smoothly switch into <strong>Mode B (Verify & Evaluate)</strong> and inspect its 5D Context-Mismatch Dossier:
+            Click any common claim below to smoothly switch into <strong>Verify</strong> and inspect its supporting and challenging evidence side by side:
           </p>
           ${commonClaimsHtml}
         </div>
@@ -1442,7 +1442,7 @@ function renderEvaluateDossierHtml(env) {
                 ? `<button type="button" class="nav-pill-btn" data-pivot-to-learn="${escapeHtml(
                     ac.pivot_to_learn_cancer_id
                   )}" data-pivot-cat="${escapeHtml(ac.pivot_to_learn_category_slug || "overview")}">
-                    🔬 Explore Topic in Mode A →
+                    🔬 Learn about this topic →
                   </button>`
                 : ""
             }
@@ -1546,7 +1546,7 @@ function renderEvaluateDossierHtml(env) {
               <button type="button" class="nav-pill-btn primary-emerald" data-pivot-to-learn="${escapeHtml(
                 env.cancer_id || "lung-cancer"
               )}" data-pivot-cat="treatment">
-                🔬 Browse General Educational Treatment Overview in Mode A →
+                🔬 Browse the general treatment guide →
               </button>
             </div>
           </div>`
@@ -2049,7 +2049,7 @@ function initEventListeners() {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "l") {
       e.preventDefault();
       setLensMode(state.activeMode === "LEARN" ? "EVALUATE" : "LEARN");
-      showToast(`Switched Focal Lens to Mode: ${state.activeMode}`);
+      showToast(`Switched to ${state.activeMode === "EVALUATE" ? "Verify" : "Learn"}`);
     }
   });
 
@@ -2355,7 +2355,7 @@ function initEventListeners() {
       });
       state.recentHistory = state.recentHistory.slice(0, 6);
       loadLearnTopicLiveOrPreview(pivotLearnCancer, "all", pivotCat, null);
-      showToast("Pivoted to Mode A (Explore & Learn) for underlying clinical biology.");
+      showToast("Pivoted to Learn for underlying clinical biology.");
       return;
     }
 
