@@ -38,6 +38,7 @@ from .common import (
     OUT_OF_SCOPE_NOTE,
     PipelineTracker,
     ServiceContainer,
+    apply_link_verdicts,
     abstention_envelope,
     build_telemetry,
     label_for_non_assessed,
@@ -261,6 +262,7 @@ async def run_learn_pipeline(req: LearnRequest, c: ServiceContainer) -> ResultEn
             mapping_applied=mapping_applied, **common,
         )
 
+    items = await apply_link_verdicts(c, items)
     admitted = [i for i in items if i.ai_processing_allowed is True]  # WHO Clause 6 gate
     tracker.advance(PipelineState.EVIDENCE_VALIDATED)
 

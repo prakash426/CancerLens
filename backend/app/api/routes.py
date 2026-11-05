@@ -24,7 +24,7 @@ from ..investigator import (
     run_learn_coverage,
     run_learn_pipeline,
 )
-from ..investigator.common import new_request_id
+from ..investigator.common import apply_link_verdicts, new_request_id
 from ..investigator.hooks import (
     CapabilityNotReadyError,
     guard_image_upload,
@@ -380,6 +380,7 @@ async def get_saved_result(
         if missing:
             c.store.delete_saved_result(saved_result_id, x_capability_token)
             raise SavedResultInvalidatedError("A cited source was withdrawn or changed; this saved result was invalidated.")
+        items = await apply_link_verdicts(c, items, check_live=False)  # cached verdicts only; no fetch on read
         envelope = run_stage4_verifier(envelope.model_copy(update={"evidence_items": items}), items)
         note = "Cited sources were re-fetched live from Cancer Info API and re-verified."
     return SavedResultView(

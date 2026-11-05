@@ -997,6 +997,12 @@
             "type": "boolean",
             "title": "Ai Processing Allowed",
             "description": "Clause 6 gate checked before any external LLM transmission"
+          },
+          "link_ok": {
+            "type": "boolean",
+            "title": "Link Ok",
+            "description": "False only when CancerLens fetched canonical_url and proved it dead (loop, DNS failure, 404/410)",
+            "default": true
           }
         },
         "additionalProperties": false,

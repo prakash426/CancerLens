@@ -44,6 +44,10 @@ class CancerInfoEvidenceItem(BaseModel):
     reviewed_at_date: date
     attribution_text: str = Field(description="Mandatory Clause 3 bibliographical reference & non-endorsement notice")
     ai_processing_allowed: bool = Field(description="Clause 6 gate checked before any external LLM transmission")
+    link_ok: bool = Field(
+        default=True,
+        description="False only when CancerLens fetched canonical_url and proved it dead (loop, DNS failure, 404/410)",
+    )
 
 
 class ContextDimensionComparison(BaseModel):

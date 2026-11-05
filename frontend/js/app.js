@@ -930,6 +930,12 @@ function categoryTitle(slug) {
     .join(" ");
 }
 
+function sourceLinkOk(item) {
+  // link_ok is False only when the backend proved the URL dead; missing flag
+  // (preview data, old snapshots) keeps the long-standing visible behavior.
+  return !item || item.link_ok !== false;
+}
+
 function learnGapNote(env, cancerMeta) {
   // Short plain message for Learn gaps. Null when the envelope holds data or
   // carries a safety refusal (OUT_OF_SCOPE keeps its own wording untouched).
@@ -1140,7 +1146,8 @@ function renderLearnDossierHtml(env) {
             <strong style="font-size:0.88rem;color:var(--text-primary);">🏛️ ${escapeHtml(
               item.organization_name
             )} — ${escapeHtml(item.source_title)}</strong>
-            <a
+            ${sourceLinkOk(item)
+              ? `<a
               href="${escapeHtml(item.canonical_url)}"
               target="_blank"
               rel="noopener noreferrer"
@@ -1148,7 +1155,8 @@ function renderLearnDossierHtml(env) {
               style="font-size:0.78rem;word-break:break-all;"
             >
               ${escapeHtml(item.canonical_url)} ↗
-            </a>
+            </a>`
+              : `<span class="source-external-link" style="font-size:0.78rem;color:var(--text-muted);">Original link unavailable</span>`}
           </div>
           <p class="ai-synthesis-text" style="margin:0;">${escapeHtml(
             item.structured_fact_or_summary
@@ -1400,6 +1408,11 @@ function renderEvaluateDossierHtml(env) {
               matchedEv.source_title && matchedEv.source_title.length > 42
                 ? `${matchedEv.source_title.slice(0, 40)}…`
                 : matchedEv.source_title || `Source #${citeIdx + 1}`;
+            if (!sourceLinkOk(matchedEv)) {
+              return `<span class="cited-source-pill" title="${escapeHtml(
+                `${matchedEv.organization_name}: ${matchedEv.source_title} (original link unavailable)`
+              )}">🏛️ ${escapeHtml(orgShort)} — ${escapeHtml(titleShort)}</span>`;
+            }
             return `<a href="${escapeHtml(
               matchedEv.canonical_url
             )}" target="_blank" rel="noopener noreferrer" class="cited-source-pill" title="${escapeHtml(
@@ -1675,11 +1688,13 @@ function renderSourcesSection() {
               ${escapeHtml(item.attribution_text)}
             </div>
             <div class="source-footer-actions">
-              <a href="${escapeHtml(
-                item.canonical_url
-              )}" target="_blank" rel="noopener noreferrer" class="source-external-link">
-                View Original Source ↗
-              </a>
+              ${sourceLinkOk(item)
+                ? `<a href="${escapeHtml(
+                  item.canonical_url
+                )}" target="_blank" rel="noopener noreferrer" class="source-external-link">
+                  View Original Source ↗
+                </a>`
+                : `<span class="source-external-link" style="color:var(--text-muted);">Original link unavailable</span>`}
               <div style="display:flex;gap:8px;">
                 <button type="button" class="nav-pill-btn" data-copy-citation="${escapeHtml(
                   item.fact_id
