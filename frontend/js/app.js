@@ -35,6 +35,9 @@ const state = {
   selectedCancerId: null,
   selectedSubtypeId: "all",
   selectedCategorySlug: "overview",
+  categoryCoverage: null, // cancer+subtype -> { slug: has_data } from GET /learn/coverage
+  coverageCancerKey: null,
+  coverageReqToken: 0,
   selectedEvalScenarioKey: null,
   activeModality: "TEXT", // "TEXT" | "IMAGE_OCR" | "URL_EXTRACT"
   confirmationOpen: false,
@@ -395,7 +398,7 @@ function buildLearnEnvelope(cancerId, subtypeId, categorySlug, userQuestion = nu
     CLINICAL_CATEGORIES.find((cat) => cat.slug === categorySlug) || CLINICAL_CATEGORIES[0];
   const directBase = LEARN_ENVELOPES[cancerMeta.cancer_id];
 
-  // Demonstrate honest CORPUS_COVERAGE_GAP when user clicks a gap category (SG-03)
+  // Offline preview has no records for gap categories (SG-03 abstention)
   if (catMeta.status === "COVERAGE_GAP") {
     return {
       ...(directBase || LEARN_ENVELOPES["lung-cancer"]),
@@ -406,8 +409,8 @@ function buildLearnEnvelope(cancerId, subtypeId, categorySlug, userQuestion = nu
       category_slug: categorySlug,
       retrieval_state: "SEARCH_EXECUTED_NO_MATCHES",
       overall_outcome_code: "INSUFFICIENT_EVIDENCE",
-      overall_outcome_label: `Coverage Gap in '${catMeta.title}'`,
-      ai_plain_language_summary: `This specific category (${catMeta.title} for ${cancerMeta.canonical_name}) is not yet populated in the local CancerLens preview snapshot (RetrievalState = SEARCH_EXECUTED_NO_MATCHES). That does not mean evidence does not exist elsewhere. CancerLens abstains rather than guessing statistics or survival percentages.`,
+      overall_outcome_label: `No ${catMeta.title} data in this preview`,
+      ai_plain_language_summary: `${catMeta.title} for ${cancerMeta.canonical_name} is not included in this offline preview. Start the CancerLens backend for live coverage.`,
       evidence_items: []
     };
   }
@@ -740,7 +743,7 @@ async function renderResultsCardPng(snap) {
   ctx.fillText("CancerLens Results", pad + 112, y + 46);
   ctx.fillStyle = "#94a3b8";
   ctx.font = "400 26px Inter, system-ui, sans-serif";
-  const modeLabel = snap.mode === "EVALUATE" ? "Verify & Evaluate" : "Explore & Learn";
+  const modeLabel = snap.mode === "EVALUATE" ? "Verify" : "Learn";
   const topicLabel = results.cancerName ? ` · ${results.cancerName}` : "";
   ctx.fillText(`${modeLabel}${topicLabel}`, pad + 112, y + 82);
   y += 96 + 36;
@@ -904,6 +907,98 @@ function sanitizeEnvelopeForBackendSave(env) {
 }
 
 /* --------------------------------------------------------------------------
+   Learn category coverage: only categories holding data stay clickable
+   -------------------------------------------------------------------------- */
+function coverageKey(cancerId, subtypeId) {
+  return `${cancerId || "general-oncology"}|${subtypeId || "all"}`;
+}
+
+function visibleClinicalCategories() {
+  if (!state.backendConnected || !state.categoryCoverage) {
+    // Preview (or coverage not yet known): hide only the statically known gaps.
+    return CLINICAL_CATEGORIES.filter((cat) => cat.status !== "COVERAGE_GAP");
+  }
+  return CLINICAL_CATEGORIES.filter((cat) => state.categoryCoverage[cat.slug] !== false);
+}
+
+function categoryTitle(slug) {
+  const found = CLINICAL_CATEGORIES.find((cat) => cat.slug === slug);
+  if (found) return found.title;
+  return String(slug || "overview")
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function learnGapNote(env, cancerMeta) {
+  // Short plain message for Learn gaps. Null when the envelope holds data or
+  // carries a safety refusal (OUT_OF_SCOPE keeps its own wording untouched).
+  if (!env || env.retrieval_state === "SEARCH_EXECUTED_WITH_MATCHES") return null;
+  if (env.overall_outcome_code === "OUT_OF_SCOPE_CLINICAL") return null;
+  const cancerName = cancerMeta.short_label || cancerMeta.canonical_name || "this cancer";
+  if (env.retrieval_state === "TOOL_FAILED") {
+    return "CancerLens couldn't reach its information service just now. Please try again in a moment.";
+  }
+  if (env.coverage_empty === true) {
+    return `There's no information for ${cancerName} in the CancerLens collection right now. Try a different cancer, or check back later.`;
+  }
+  const activeSlug = env.category_slug || state.selectedCategorySlug;
+  const others = visibleClinicalCategories().filter((c) => c.slug !== activeSlug);
+  const hint =
+    others.length > 0 ? "Try another category above." : "Try a different cancer, or check back later.";
+  return `There's no ${categoryTitle(activeSlug)} information for ${cancerName} in the CancerLens collection right now. ${hint}`;
+}
+
+async function refreshLearnCoverage(cancerId, subtypeId) {
+  const key = coverageKey(cancerId, subtypeId);
+  if (!state.backendConnected || (state.coverageCancerKey === key && state.categoryCoverage)) {
+    return;
+  }
+  const token = ++state.coverageReqToken;
+  try {
+    const params = new URLSearchParams({ cancer_id: cancerId || "general-oncology" });
+    if (subtypeId && subtypeId !== "all") params.set("subtype_id", subtypeId);
+    CLINICAL_CATEGORIES.forEach((cat) => params.append("category_slug", cat.slug));
+    const resp = await fetch(`${BACKEND_BASE_URL}/learn/coverage?${params.toString()}`);
+    if (!resp.ok || token !== state.coverageReqToken) return; // stale loser or error: /learn reports it
+    const body = await resp.json();
+    const map = {};
+    (body.categories || []).forEach((c) => {
+      map[c.category_slug] = c.has_data !== false;
+    });
+    state.categoryCoverage = map;
+    state.coverageCancerKey = key;
+  } catch (_err) {
+    // Offline blip: keep showing every category; the /learn call reports errors.
+  }
+}
+
+function buildEmptyCoverageEnvelope(cancerId, subtypeId) {
+  const cancerMeta = resolveCancerMetaBySlug(cancerId) || {};
+  return {
+    resolved_mode: "LEARN",
+    retrieval_state: "SEARCH_EXECUTED_NO_MATCHES",
+    coverage_empty: true,
+    interpreted_query_or_claim: cancerMeta.canonical_name || cancerId || "general-oncology",
+    cancer_id: cancerId || "general-oncology",
+    cancer_name: cancerMeta.canonical_name || null,
+    subtype_id: subtypeId && subtypeId !== "all" ? subtypeId : null,
+    category_slug: null,
+    overall_outcome_code: "INSUFFICIENT_EVIDENCE",
+    overall_outcome_label: "No information available",
+    ai_plain_language_summary: "",
+    learn_category_cards: [],
+    evidence_items: [],
+    treatment_approaches: [],
+    symptoms_list: [],
+    diagnostic_procedures: [],
+    common_claims_to_verify: [],
+    related_reviewed_claims: [],
+    limitations_and_gaps_note: ""
+  };
+}
+
+/* --------------------------------------------------------------------------
    Render Main Results Dossier (Screenshot 3 Layout: Mode A vs. Mode B)
    -------------------------------------------------------------------------- */
 function renderMainDossier() {
@@ -955,18 +1050,20 @@ function renderLearnDossierHtml(env) {
     })
     .join("");
 
-  const categoryPillsHtml = CLINICAL_CATEGORIES.map((cat) => {
-    const pressed = cat.slug === state.selectedCategorySlug;
-    const gapTag =
-      cat.status === "COVERAGE_GAP"
-        ? " (Gap)"
-        : cat.status === "PARTIAL"
-        ? " (Partial)"
-        : "";
-    return `<button type="button" class="filter-pill" data-category-select="${escapeHtml(
-      cat.slug
-    )}" aria-pressed="${pressed}">${cat.icon} ${escapeHtml(cat.title)}${gapTag}</button>`;
-  }).join("");
+  const gapNote = learnGapNote(env, cancerMeta);
+  const visibleCategories = visibleClinicalCategories();
+  const categoryPillsHtml =
+    visibleCategories.length > 0
+      ? visibleCategories
+          .map((cat) => {
+            const pressed = cat.slug === state.selectedCategorySlug;
+            const partialTag = cat.status === "PARTIAL" ? " (Partial)" : "";
+            return `<button type="button" class="filter-pill" data-category-select="${escapeHtml(
+              cat.slug
+            )}" aria-pressed="${pressed}">${cat.icon} ${escapeHtml(cat.title)}${partialTag}</button>`;
+          })
+          .join("")
+      : `<span class="suggestions-label">No categories hold data for this cancer right now.</span>`;
 
   const treatmentsHtml = (env.treatment_approaches || [])
     .map((item) => `<li>${escapeHtml(item)}</li>`)
@@ -1081,7 +1178,7 @@ function renderLearnDossierHtml(env) {
         claimObj.claim_text || claimObj
       )}">
         <span>🛡️ "${escapeHtml(claimObj.claim_text || claimObj)}"</span>
-        <span style="color:var(--accent-eval);font-size:0.75rem;white-space:nowrap;">Verify in Mode B →</span>
+        <span style="color:var(--accent-eval);font-size:0.75rem;white-space:nowrap;">Verify this claim →</span>
       </button>
     `
     )
@@ -1116,7 +1213,7 @@ function renderLearnDossierHtml(env) {
   return `
     <div class="dossier-top-row">
       <div>
-        <span class="profile-pill">🔬 Cancer Information Profile • Mode A (Learn Lens)</span>
+        <span class="profile-pill">🔬 Cancer Information Profile • Learn</span>
         <h2 class="dossier-title">${escapeHtml(activeHeading)}</h2>
         <p class="dossier-meta-line">
           Known aliases: ${escapeHtml(cancerMeta.aliases)} · Anatomy: ${escapeHtml(
@@ -1131,11 +1228,11 @@ function renderLearnDossierHtml(env) {
 
     ${renderSnapshotMiniCardHtml()}
 
-    <!-- Subtype (shown after Explore Topic) & 11 Clinical Categories Strip -->
+    <!-- Subtype (shown after Explore Topic) & Clinical Categories Strip -->
     <div class="subtype-category-bar">
       ${subtypeScopeRowHtml}
-      <div class="pill-group" role="group" aria-label="11 Clinical Categories">
-        <span class="suggestions-label">11 Categories:</span>
+      <div class="pill-group" role="group" aria-label="${visibleCategories.length} Clinical Categories">
+        <span class="suggestions-label">${visibleCategories.length} Categories:</span>
         ${categoryPillsHtml}
       </div>
     </div>
@@ -1147,7 +1244,7 @@ function renderLearnDossierHtml(env) {
         <div class="ai-synthesis-box">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
             <div class="ai-author-badge" style="margin-bottom:0;">
-              🤖 AI-Generated Plain-Language Summary — Authored by CancerLens AI · Powered by (Meta muse-spark-1.3)
+              ${gapNote ? "ℹ️ CancerLens collection note" : "🤖 AI-Generated Plain-Language Summary — Authored by CancerLens AI · Powered by (Meta muse-spark-1.3)"}
             </div>
             <button
               type="button"
@@ -1158,7 +1255,7 @@ function renderLearnDossierHtml(env) {
               🔗 Share Summary
             </button>
           </div>
-          <p class="ai-synthesis-text">${escapeHtml(env.ai_plain_language_summary)}</p>
+          <p class="ai-synthesis-text">${escapeHtml(gapNote || env.ai_plain_language_summary)}</p>
           ${combinedOverviewExtraHtml}
         </div>
 
@@ -1198,8 +1295,8 @@ function renderLearnDossierHtml(env) {
         `
             : `
           <div class="clinical-neutral-box" style="border-color:var(--verdict-gap-border);">
-            <h3 class="section-heading">ℹ️ Honest Corpus Coverage Gap</h3>
-            <p class="ai-synthesis-text">${escapeHtml(env.limitations_and_gaps_note)}</p>
+            <h3 class="section-heading">No data available</h3>
+            <p class="ai-synthesis-text">${escapeHtml(gapNote || env.limitations_and_gaps_note)}</p>
           </div>
         `
         }
@@ -1208,9 +1305,9 @@ function renderLearnDossierHtml(env) {
       <!-- Right Sidebar Column (Highlights, Mechanism B Claims & Related Tools — Matches Screenshot 3) -->
       <aside>
         <div class="sidebar-highlight-card">
-          <h4 class="sidebar-card-eyebrow">✨ Common Public Claims in This Topic (Pivot to Mode B)</h4>
+          <h4 class="sidebar-card-eyebrow">✨ Common Public Claims in This Topic (Check in Verify)</h4>
           <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 12px 0;">
-            Click any common claim below to smoothly switch into <strong>Mode B (Verify & Evaluate)</strong> and inspect its 5D Context-Mismatch Dossier:
+            Click any common claim below to smoothly switch into <strong>Verify</strong> and inspect its supporting and challenging evidence side by side:
           </p>
           ${commonClaimsHtml}
         </div>
@@ -1224,7 +1321,7 @@ function renderLearnDossierHtml(env) {
             <span>›</span>
           </button>
           <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle);font-size:0.76rem;color:var(--text-muted);">
-            <strong>Limitations & Scope:</strong> ${escapeHtml(env.limitations_and_gaps_note)}
+            <strong>Limitations & Scope:</strong> ${escapeHtml(gapNote || env.limitations_and_gaps_note)}
           </div>
         </div>
       </aside>
@@ -1345,7 +1442,7 @@ function renderEvaluateDossierHtml(env) {
                 ? `<button type="button" class="nav-pill-btn" data-pivot-to-learn="${escapeHtml(
                     ac.pivot_to_learn_cancer_id
                   )}" data-pivot-cat="${escapeHtml(ac.pivot_to_learn_category_slug || "overview")}">
-                    🔬 Explore Topic in Mode A →
+                    🔬 Learn about this topic →
                   </button>`
                 : ""
             }
@@ -1449,7 +1546,7 @@ function renderEvaluateDossierHtml(env) {
               <button type="button" class="nav-pill-btn primary-emerald" data-pivot-to-learn="${escapeHtml(
                 env.cancer_id || "lung-cancer"
               )}" data-pivot-cat="treatment">
-                🔬 Browse General Educational Treatment Overview in Mode A →
+                🔬 Browse the general treatment guide →
               </button>
             </div>
           </div>`
@@ -1702,13 +1799,35 @@ async function loadLearnTopicLiveOrPreview(
     }
     showLoading("Loading verified evidence...");
     try {
+      const loadingText = document.getElementById("loading-text");
+      if (loadingText) loadingText.textContent = "Checking available topics...";
+      await refreshLearnCoverage(cancerId, subtypeId);
+      if (loadingText) loadingText.textContent = "Loading verified evidence...";
+      const visible = visibleClinicalCategories();
+      if (visible.length === 0) {
+        withViewTransition(() => {
+          state.currentEnvelope = buildEmptyCoverageEnvelope(cancerId, subtypeId);
+          renderSuggestionsAndHistory();
+          renderPipelineStepper();
+          renderMainDossier();
+          renderSourcesSection();
+        });
+        return;
+      }
+      let effectiveCategory = categorySlug;
+      if (effectiveCategory && !visible.some((cat) => cat.slug === effectiveCategory)) {
+        effectiveCategory = visible.some((cat) => cat.slug === "overview")
+          ? "overview"
+          : visible[0].slug;
+        state.selectedCategorySlug = effectiveCategory;
+      }
       const resp = await fetch(`${BACKEND_BASE_URL}/learn`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cancer_id: cancerId || "general-oncology",
           subtype_id: !subtypeId || subtypeId === "all" ? null : subtypeId,
-          category_slug: categorySlug || null,
+          category_slug: effectiveCategory || null,
           user_question: userQuestion || null,
           resolved_mode: "LEARN"
         })
@@ -1930,7 +2049,7 @@ function initEventListeners() {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "l") {
       e.preventDefault();
       setLensMode(state.activeMode === "LEARN" ? "EVALUATE" : "LEARN");
-      showToast(`Switched Focal Lens to Mode: ${state.activeMode}`);
+      showToast(`Switched to ${state.activeMode === "EVALUATE" ? "Verify" : "Learn"}`);
     }
   });
 
@@ -2236,7 +2355,7 @@ function initEventListeners() {
       });
       state.recentHistory = state.recentHistory.slice(0, 6);
       loadLearnTopicLiveOrPreview(pivotLearnCancer, "all", pivotCat, null);
-      showToast("Pivoted to Mode A (Explore & Learn) for underlying clinical biology.");
+      showToast("Pivoted to Learn for underlying clinical biology.");
       return;
     }
 

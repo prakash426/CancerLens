@@ -769,6 +769,11 @@ body[data-active-mode="EVALUATE"] .main-action-btn:hover {
   flex-wrap: wrap;
 }
 
+/* display:flex above beats the UA [hidden] rule, so hide explicitly (Learn mode). */
+.multimodal-toolbar[hidden] {
+  display: none;
+}
+
 .modality-pills {
   display: flex;
   align-items: center;

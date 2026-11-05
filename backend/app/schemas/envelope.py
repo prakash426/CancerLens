@@ -240,6 +240,27 @@ class CancerCatalogResponse(BaseModel):
     cancers: list[dict[str, Any]] = Field(default_factory=list)
 
 
+class LearnCoverageCategory(BaseModel):
+    """Per-category data availability for one cancer. ``has_data=False`` means a
+    deterministic upstream empty result; the frontend hides those categories."""
+
+    model_config = _FORBID
+
+    category_slug: str
+    has_data: bool
+
+
+class LearnCoverageResponse(BaseModel):
+    """Which Learn categories hold records for a cancer. Retrieval only, never a model call."""
+
+    model_config = _FORBID
+
+    retrieval_state: RetrievalState
+    cancer_id: str
+    subtype_id: str | None = None
+    categories: list[LearnCoverageCategory] = Field(default_factory=list)
+
+
 class SavedResultCreateRequest(BaseModel):
     model_config = _FORBID
 
