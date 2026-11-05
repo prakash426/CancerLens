@@ -64,6 +64,12 @@ cd frontend
 python3 -m http.server 5500
 ```
 
+> **Before starting the app:** for the full demo (AI summaries, claim verdicts,
+> screenshot reading), put your Meta and Baseten API keys in `backend/.env.local`
+> and set `LIVE_LLM_CALLS_ENABLED=true`. Per-token prices ship prefilled, with
+> no keys needed for the facts-only demo. Without that flag the app still starts,
+> but every AI feature refuses and you get facts only.
+
 Open http://localhost:5500 in your browser. The top bar pill shows whether
 the UI reached the backend; without the backend it runs in UI Preview Mode on
 bundled sample data.
@@ -89,7 +95,7 @@ Follow this script end to end (about 10 minutes, $0.00 without model keys):
    the live call switch and per pool spend. It starts at $0.00.
 
 To enable live AI synthesis and verification, add your Meta and Baseten API
-keys plus Meta per token pricing to `backend/.env.local`, set
+keys to `backend/.env.local` (per-token prices ship prefilled), set
 `LIVE_LLM_CALLS_ENABLED=true`, and restart the backend. Typical demo cost is
 fractions of a cent per call, bounded by pre submission caps.
 
