@@ -71,6 +71,11 @@ def guard_public_url(url: str, resolver: Resolver | None = None) -> str:
         port = parts.port
     except ValueError:
         raise ValueError("Invalid port in URL.")
+    if port is None and parts.netloc.rpartition("@")[2].endswith(":"):
+        # urlsplit returns None instead of raising for an empty port
+        # ("host:") on some Python versions; reject it explicitly so the
+        # guard never depends on DNS failing to catch a malformed URL.
+        raise ValueError("Invalid port in URL.")
     if port is not None and port != 443:
         raise ValueError("Only the default https port (443) is allowed.")
     lowered = hostname.lower().rstrip(".")
